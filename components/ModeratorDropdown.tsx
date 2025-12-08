@@ -134,16 +134,18 @@ export default function ModeratorDropdown({
               const isSelected = moderatorProvider === provider.id && moderatorModel;
               const hasApiKey = availableProviders.includes(provider.id) || serverSideKeys.has(provider.id) || !requiresKey;
               const hasModels = models.length > 0;
+              // Allow expansion if provider doesn't require key (models will be fetched), or if we have a key and models are available/loading
+              const canExpand = hasApiKey && (!requiresKey || hasModels || isLoadingModels);
 
               return (
                 <div key={provider.id}>
                   <button
-                    onClick={() => hasApiKey && toggleProvider(provider.id)}
+                    onClick={() => canExpand && toggleProvider(provider.id)}
                     className={`
                       w-full text-left px-3 py-2 rounded-md text-sm font-semibold transition-colors flex items-center justify-between
-                      ${hasApiKey ? 'hover:bg-accent cursor-pointer' : 'opacity-60 cursor-not-allowed'}
+                      ${canExpand ? 'hover:bg-accent cursor-pointer' : 'opacity-60 cursor-not-allowed'}
                     `}
-                    disabled={!hasApiKey || (models.length === 0 && !isLoadingModels)}
+                    disabled={!canExpand}
                   >
                     <div className="flex items-center gap-2">
                       <span>{provider.displayName}</span>
@@ -153,14 +155,14 @@ export default function ModeratorDropdown({
                         </span>
                       )}
                     </div>
-                    {hasApiKey && (
+                    {canExpand && (
                       <span className="text-muted-foreground">
                         {isExpanded ? '▼' : '▶'}
                       </span>
                     )}
                   </button>
 
-                  {isExpanded && hasApiKey && (
+                  {isExpanded && canExpand && (
                     <div className="pl-4 pb-1">
                       {models.length === 0 ? (
                         <div className="px-3 py-1 text-xs text-muted-foreground">

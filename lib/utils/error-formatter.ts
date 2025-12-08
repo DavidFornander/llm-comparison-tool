@@ -247,7 +247,7 @@ export function formatErrorMessage(errorMessage: string, technicalDetailsOverrid
  * Extract provider name from error message if present
  */
 export function extractProviderFromError(errorMessage: string): string | null {
-  const providers = ['openai', 'anthropic', 'google', 'cohere', 'grok'];
+  const providers = ['openai', 'anthropic', 'google', 'cohere', 'grok', 'ollama'];
   const lowerMessage = errorMessage.toLowerCase();
   
   for (const provider of providers) {

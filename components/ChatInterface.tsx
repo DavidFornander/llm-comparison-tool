@@ -108,6 +108,9 @@ export default function ChatInterface() {
       setIsLoadingModeratorModels(true);
       const modelsMap: Record<ProviderId, string[]> = {};
 
+      // Get providers list
+      const providers = providerRegistry.getConfigs();
+
       // Filter to only enabled providers (with API keys or providers that don't require keys)
       const enabledProvidersWithKeys = providers
         .filter((p) => {
@@ -582,31 +585,32 @@ export default function ChatInterface() {
             </>
           )}
         </div>
+      </div>
 
-        {isLoading && (
-          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 py-4 bg-background/80 backdrop-blur-md border-t border-border/40 z-20">
-            <div className="max-w-7xl mx-auto w-full">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
-                <span className="text-sm font-medium">
-                  Waiting for responses from {selectedProviders.length} provider(s)...
-                </span>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectedProviders.map((providerId) => {
-                  const provider = providerRegistry.get(providerId);
-                  return (
-                    <div key={providerId} className="flex items-center gap-2 px-3 py-1.5 bg-accent/50 rounded-full border border-border/50 text-xs font-medium">
-                      <div className="animate-pulse-slow w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_currentColor] text-primary"></div>
-                      <span className="text-foreground">{provider?.displayName}</span>
-                    </div>
-                  );
-                })}
-              </div>
+      {/* Loading Indicator - positioned above input */}
+      {isLoading && (
+        <div className="bg-background/80 backdrop-blur-md border-t border-border/40 px-4 sm:px-6 py-4 shadow-lg">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+              <span className="text-sm font-medium">
+                Waiting for responses from {selectedProviders.length} provider(s)...
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedProviders.map((providerId) => {
+                const provider = providerRegistry.get(providerId);
+                return (
+                  <div key={providerId} className="flex items-center gap-2 px-3 py-1.5 bg-accent/50 rounded-full border border-border/50 text-xs font-medium">
+                    <div className="animate-pulse-slow w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_currentColor] text-primary"></div>
+                    <span className="text-foreground">{provider?.displayName}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Input */}
       <div className="bg-background/80 backdrop-blur-lg border-t border-border/40 px-4 sm:px-6 py-6 shadow-2xl shadow-black/5">

@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { providerRegistry } from '@/lib/provider-registry';
 import { getApiKey, setApiKey, removeApiKey, hasApiKey, getDefaultModel, setDefaultModel, isProviderEnabled, setProviderEnabled } from '@/lib/storage';
 import type { ProviderId } from '@/types';
 import { providerUrls } from '@/lib/provider-urls';
 
 export default function SettingsForm() {
-  const providers = providerRegistry.getConfigs();
+  // Memoize providers to prevent infinite loop - provider registry is stable
+  const providers = useMemo(() => providerRegistry.getConfigs(), []);
   const [apiKeys, setApiKeys] = useState<Record<ProviderId, string>>({} as Record<ProviderId, string>);
   const [savedStatus, setSavedStatus] = useState<Record<ProviderId, boolean>>({} as Record<ProviderId, boolean>);
   const [showKeys, setShowKeys] = useState<Record<ProviderId, boolean>>({} as Record<ProviderId, boolean>);
@@ -180,6 +181,8 @@ export default function SettingsForm() {
     const isSaved = savedStatus[provider.id];
     const isShowing = showKeys[provider.id];
     const currentValue = apiKeys[provider.id] || '';
+    const providerInstance = providerRegistry.get(provider.id);
+    const requiresKey = providerInstance?.requiresApiKey ?? true;
 
     return (
       <div
@@ -297,7 +300,7 @@ export default function SettingsForm() {
               onClick={() => fetchModelsForProvider(provider.id)}
               disabled={
                 loadingModels[provider.id] || 
-                (provider.requiresApiKey && !isSaved && !serverSideKeys.has(provider.id))
+                (requiresKey && !isSaved && !serverSideKeys.has(provider.id))
               }
               className="px-3 py-1.5 text-xs border border-border rounded-xl hover:bg-accent text-foreground disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 font-medium"
             >
@@ -315,7 +318,7 @@ export default function SettingsForm() {
               <select
                 value={defaultModels[provider.id] || ''}
                 onChange={(e) => handleDefaultModelChange(provider.id, e.target.value)}
-                disabled={!isSaved && !serverSideKeys.has(provider.id)}
+                disabled={requiresKey && !isSaved && !serverSideKeys.has(provider.id)}
                 className="w-full px-3 py-2 text-sm border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
               >
                 <option value="">Select default model...</option>

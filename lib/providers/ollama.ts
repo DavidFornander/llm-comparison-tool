@@ -158,6 +158,7 @@ export class OllamaProvider extends LLMProvider {
 
       return modelNames;
     } catch (error) {
+      // Handle timeout errors
       if (error instanceof Error && error.message.includes('timeout')) {
         const requestResponseLog: RequestResponseLog = {
           request: requestDetails,
@@ -167,6 +168,34 @@ export class OllamaProvider extends LLMProvider {
         (timeoutError as Error & { technicalDetails?: string }).technicalDetails = technicalDetails;
         throw timeoutError;
       }
+      
+      // Handle network/connection errors (ECONNREFUSED, ENOTFOUND, etc.)
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        const errorName = error.name.toLowerCase();
+        
+        // Check for common network error patterns
+        if (
+          errorMessage.includes('failed to fetch') ||
+          errorMessage.includes('networkerror') ||
+          errorMessage.includes('network error') ||
+          errorMessage.includes('connection') ||
+          errorMessage.includes('econnrefused') ||
+          errorMessage.includes('enotfound') ||
+          errorMessage.includes('eai_again') ||
+          errorName.includes('typeerror') ||
+          errorName.includes('networkerror')
+        ) {
+          const requestResponseLog: RequestResponseLog = {
+            request: requestDetails,
+          };
+          const technicalDetails = this.formatRequestResponseLog(requestResponseLog);
+          const connectionError = new Error(`Cannot connect to Ollama at ${baseUrl}. Make sure Ollama is running and accessible.`);
+          (connectionError as Error & { technicalDetails?: string }).technicalDetails = technicalDetails;
+          throw connectionError;
+        }
+      }
+      
       throw error;
     }
   }

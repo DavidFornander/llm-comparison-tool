@@ -63,7 +63,7 @@ export function validateProviderIds(providerIds: unknown): string[] {
     throw new ValidationError('At least one provider must be selected');
   }
 
-  const validProviderIds = ['openai', 'anthropic', 'google', 'cohere', 'grok'];
+  const validProviderIds = ['openai', 'anthropic', 'google', 'cohere', 'grok', 'ollama'];
   const invalidIds = providerIds.filter(
     (id) => typeof id !== 'string' || !validProviderIds.includes(id)
   );

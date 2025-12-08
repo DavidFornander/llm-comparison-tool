@@ -87,9 +87,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ models });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch models';
-      console.error(`Error fetching models for ${providerId}:`, errorMessage);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      console.error(`Error fetching models for ${providerId}:`, {
+        message: errorMessage,
+        stack: errorStack,
+        providerId,
+        requiresKey,
+      });
       
-      // Don't expose internal error details to client
+      // For providers that don't require API keys (like Ollama), pass through connection errors
+      // These are safe to expose and helpful for users
+      if (!requiresKey) {
+        // Check if it's a connection/network error (safe to expose)
+        const lowerMessage = errorMessage.toLowerCase();
+        if (
+          lowerMessage.includes('cannot connect') ||
+          lowerMessage.includes('connection') ||
+          lowerMessage.includes('ollama') ||
+          lowerMessage.includes('running') ||
+          lowerMessage.includes('timeout') ||
+          lowerMessage.includes('timed out')
+        ) {
+          return NextResponse.json(
+            { error: errorMessage },
+            { status: 500 }
+          );
+        }
+      }
+      
+      // For API key-related errors or other errors, use generic message
       return NextResponse.json(
         { error: 'Failed to fetch available models. Please check your API key and try again.' },
         { status: 500 }
