@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
 
         const apiKey = finalApiKeys[providerId as ProviderId];
         const model = selectedModels?.[providerId as ProviderId];
+        console.log(`[API] Provider: ${providerId}, Selected model: ${model || 'none (will use default)'}`);
         const options = model ? { model } : undefined;
         const rawContent = await provider.generateResponse(validatedPrompt, apiKey, options);
 
@@ -177,6 +178,7 @@ export async function POST(request: NextRequest) {
         return {
           providerId: providerId as ProviderId,
           content: sanitizedContent,
+          model: model || undefined,
         };
       } catch (error) {
         const model = selectedModels?.[providerId as ProviderId];
@@ -212,6 +214,7 @@ export async function POST(request: NextRequest) {
           providerId: providerId as ProviderId,
           content: '',
           error: sanitizeError(error),
+          model: model || undefined,
         };
       }
     });

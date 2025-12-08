@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { providerRegistry } from '@/lib/provider-registry';
 import { getApiKey, setApiKey, removeApiKey, hasApiKey, getDefaultModel, setDefaultModel, isProviderEnabled, setProviderEnabled } from '@/lib/storage';
 import type { ProviderId } from '@/types';
-import Link from 'next/link';
 import { providerUrls } from '@/lib/provider-urls';
 
 export default function SettingsForm() {
@@ -183,24 +182,24 @@ export default function SettingsForm() {
     return (
       <div
         key={provider.id}
-        className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800 shadow-sm"
+        className="border border-border/60 rounded-xl p-6 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow"
       >
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground">
               {provider.displayName}
             </h2>
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Provider ID: {provider.id}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Enable/Disable Toggle */}
             <label className="flex items-center gap-2 cursor-pointer">
-              <span className="text-sm text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-medium text-muted-foreground">
                 {(providerEnabled[provider.id] ?? true) ? 'Enabled' : 'Disabled'}
               </span>
-              <div className="relative">
+              <div className="relative inline-block h-6 w-11 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={providerEnabled[provider.id] ?? true}
@@ -208,28 +207,27 @@ export default function SettingsForm() {
                   className="sr-only"
                 />
                 <div
-                  className={`w-11 h-6 rounded-full transition-colors ${
+                  className={`block h-6 w-11 rounded-full transition-colors duration-200 ease-in-out ${
                     (providerEnabled[provider.id] ?? true)
-                      ? 'bg-blue-500 dark:bg-blue-600'
-                      : 'bg-gray-300 dark:bg-gray-600'
+                      ? 'bg-primary'
+                      : 'bg-muted'
                   }`}
-                >
-                  <div
-                    className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                      (providerEnabled[provider.id] ?? true) ? 'translate-x-5' : 'translate-x-0.5'
-                    } mt-0.5`}
-                  />
-                </div>
+                />
+                <div
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ease-in-out ${
+                    (providerEnabled[provider.id] ?? true) ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
               </div>
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {isSaved && (
-                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-medium rounded-full">
                   Client key saved
                 </span>
               )}
               {serverSideKeys.has(provider.id) && (
-                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 text-xs font-medium rounded-full">
                   Server key (env)
                 </span>
               )}
@@ -240,14 +238,9 @@ export default function SettingsForm() {
         <div className="space-y-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 mb-2">
-              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
                 API Key
               </p>
-              {serverSideKeys.has(provider.id) && (
-                <span className="px-2 py-1 text-[11px] rounded-full bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
-                  Server key (env)
-                </span>
-              )}
             </div>
             <div className="flex gap-2 flex-wrap">
               <input
@@ -255,45 +248,45 @@ export default function SettingsForm() {
                 value={currentValue}
                 onChange={(e) => handleChange(provider.id, e.target.value)}
                 placeholder={`Enter ${provider.displayName} API key`}
-                className="flex-1 min-w-[200px] px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 min-w-[200px] px-3 sm:px-4 py-2 text-sm sm:text-base border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
               />
               <button
                 type="button"
                 onClick={() => toggleShowKey(provider.id)}
-                className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 whitespace-nowrap transition-colors"
+                className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-border rounded-xl hover:bg-accent text-foreground whitespace-nowrap transition-all duration-200"
               >
                 {isShowing ? 'Hide' : 'Show'}
               </button>
-            </div>
-
-            <div className="flex gap-2 mt-3">
               <button
                 onClick={() => handleSave(provider.id)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium shadow-sm hover:shadow-md whitespace-nowrap"
               >
                 {isSaved ? 'Update' : 'Save'}
               </button>
-              {isSaved && (
+            </div>
+
+            {isSaved && (
+              <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => handleRemove(provider.id)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  className="px-4 py-2 bg-destructive text-destructive-foreground rounded-xl hover:bg-destructive/90 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                 >
                   Remove
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
         </div>
 
         {/* Default Model Selector (always visible) */}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+        <div className="mt-4 pt-4 border-t border-border/60 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-1">
                 Default Model
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Choose the default model for this provider. Fetch models to update the list.
               </p>
             </div>
@@ -301,14 +294,15 @@ export default function SettingsForm() {
               type="button"
               onClick={() => fetchModelsForProvider(provider.id)}
               disabled={loadingModels[provider.id] || (!isSaved && !serverSideKeys.has(provider.id))}
-              className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-xs border border-border rounded-xl hover:bg-accent text-foreground disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 font-medium"
             >
               {loadingModels[provider.id] ? 'Loading…' : 'Refresh models'}
             </button>
           </div>
 
           {loadingModels[provider.id] ? (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
               Loading models...
             </div>
           ) : availableModels[provider.id] && availableModels[provider.id].length > 0 ? (
@@ -317,7 +311,7 @@ export default function SettingsForm() {
                 value={defaultModels[provider.id] || ''}
                 onChange={(e) => handleDefaultModelChange(provider.id, e.target.value)}
                 disabled={!isSaved && !serverSideKeys.has(provider.id)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 text-sm border border-border rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
               >
                 <option value="">Select default model...</option>
                 {availableModels[provider.id].map((model) => (
@@ -326,43 +320,43 @@ export default function SettingsForm() {
                   </option>
                 ))}
               </select>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-muted-foreground">
                 {availableModels[provider.id].length} models found
               </div>
             </div>
           ) : (
-            <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+            <div className="text-sm text-muted-foreground space-y-1">
               <div>
                 {(isSaved || serverSideKeys.has(provider.id))
                   ? 'No models available. Check your API key and try refresh.'
                   : 'Save API key or configure server-side key to fetch models.'}
               </div>
               {modelErrors[provider.id] && (
-                <div className="text-amber-600 dark:text-amber-400">
+                <div className="text-amber-600 dark:text-amber-400 font-medium">
                   Error: {modelErrors[provider.id]}
                 </div>
               )}
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Use “Refresh models” after updating keys.
+              <div className="text-xs text-muted-foreground">
+                Use "Refresh models" after updating keys.
               </div>
             </div>
           )}
 
           {defaultModels[provider.id] && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Selected default: <span className="font-mono">{defaultModels[provider.id]}</span>
+            <p className="text-xs text-muted-foreground">
+              Selected default: <span className="font-mono text-foreground">{defaultModels[provider.id]}</span>
             </p>
           )}
         </div>
 
-        <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-4 text-sm text-muted-foreground">
           <p>
             Get your API key from:{' '}
             <a
               href={providerUrls[provider.id].apiKeys}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-primary hover:text-primary/80 hover:underline transition-colors"
             >
               {provider.id === 'openai' && 'OpenAI Platform'}
               {provider.id === 'anthropic' && 'Anthropic Console'}
@@ -375,7 +369,7 @@ export default function SettingsForm() {
               href={providerUrls[provider.id].apiDocs}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-primary hover:text-primary/80 hover:underline transition-colors"
             >
               API Documentation
             </a>
@@ -387,31 +381,15 @@ export default function SettingsForm() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4">
-          Manage your API keys for each LLM provider. Keys are stored locally in your browser.
-        </p>
-        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <p className="text-sm text-amber-800 dark:text-amber-300">
-            <strong>Security Warning:</strong> API keys are stored in browser localStorage, which is not secure for production use. 
-            Never share your API keys or commit them to version control. See{' '}
-            <Link href="/docs/API_SAFETY.md" className="underline" target="_blank" rel="noopener noreferrer">
-              API_SAFETY.md
-            </Link>{' '}
-            for best practices.
-          </p>
-        </div>
-      </div>
-
       <div className="space-y-8">
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">Enabled</h2>
+          <h2 className="text-base font-semibold text-foreground mb-3">Enabled</h2>
           <div className="space-y-6">
             {providers
               .filter((p) => providerEnabled[p.id] ?? true)
               .map((provider) => renderProviderCard(provider))}
             {providers.filter((p) => providerEnabled[p.id] ?? true).length === 0 && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 No providers enabled. Toggle a provider to enable it.
               </p>
             )}
@@ -419,13 +397,13 @@ export default function SettingsForm() {
         </div>
 
         <div>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">Disabled</h2>
+          <h2 className="text-base font-semibold text-foreground mb-3">Disabled</h2>
           <div className="space-y-6">
             {providers
               .filter((p) => providerEnabled[p.id] === false)
               .map((provider) => renderProviderCard(provider))}
             {providers.filter((p) => providerEnabled[p.id] === false).length === 0 && (
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 All providers are currently enabled.
               </p>
             )}

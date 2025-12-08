@@ -85,6 +85,7 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
                       error={response.error!}
                       variant="message"
                       providerName={provider.displayName}
+                      model={response.model}
                       onRetry={onRegenerate ? () => onRegenerate(response.providerId!, response.id) : undefined}
                       className="w-full relative group animate-slide-up shadow-sm rounded-2xl border-red-100 dark:border-red-900/30"
                     />
@@ -103,6 +104,11 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
                       <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${brandTextColor}`}>
                         <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75"></span>
                         {provider.displayName}
+                        {response.model && (
+                          <span className="text-[10px] font-normal normal-case opacity-75">
+                            - {response.model}
+                          </span>
+                        )}
                       </div>
                       <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
                         <MessageActions

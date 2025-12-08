@@ -92,6 +92,7 @@ export default function ChatInterface() {
 
   // Handle model selection change (memoized to prevent unnecessary re-renders)
   const handleModelChange = useCallback((providerId: ProviderId, model: string) => {
+    console.log(`[Model Selection] Setting model for ${providerId}: ${model}`);
     setSelectedModels((prev) => ({
       ...prev,
       [providerId]: model,
@@ -111,12 +112,15 @@ export default function ChatInterface() {
     });
   }, [selectedProviders]);
 
-  // Load default models when providers are selected
+  // Load default models when providers are selected (only if no model is already selected)
+  // This ensures UI selection takes precedence over stored defaults
   useEffect(() => {
     selectedProviders.forEach((providerId) => {
+      // Only set default if no model is currently selected for this provider
       if (!selectedModels[providerId]) {
         const defaultModel = getDefaultModel(providerId);
         if (defaultModel) {
+          console.log(`[Model Selection] Loading default model for ${providerId}: ${defaultModel}`);
           setSelectedModels((prev) => ({
             ...prev,
             [providerId]: defaultModel,
@@ -180,6 +184,11 @@ export default function ChatInterface() {
         headers['X-CSRF-Token'] = csrfToken;
       }
 
+      // Always send selectedModels, even if empty, so API can use it
+      // Log selected models for debugging
+      console.log('[Model Selection] Sending request with selectedModels:', selectedModels);
+      
+      // Always send selectedModels, even if empty, so API can use it
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers,
@@ -187,7 +196,7 @@ export default function ChatInterface() {
           prompt: userMessage,
           providerIds: selectedProviders,
           apiKeys,
-          selectedModels: Object.keys(selectedModels).length > 0 ? selectedModels : undefined,
+          selectedModels: selectedModels,
         }),
       });
 
@@ -207,6 +216,7 @@ export default function ChatInterface() {
         timestamp: new Date(),
         error: resp.error,
         errorType: resp.error ? categorizeError(resp.error) : undefined,
+        model: resp.model,
       }));
 
       setMessages((prev) => [...prev, ...assistantMessages]);
@@ -414,7 +424,7 @@ export default function ChatInterface() {
         <div className="max-w-7xl mx-auto w-full h-full">
           {messages.length === 0 ? (
             <EmptyState
-              type={selectedProviders.length === 0 ? 'no-providers' : 'welcome'}
+              type="welcome"
               selectedProviders={selectedProviders}
             />
           ) : viewMode === 'comparison' ? (

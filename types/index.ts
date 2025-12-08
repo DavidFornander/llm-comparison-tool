@@ -8,6 +8,7 @@ export interface Message {
   timestamp: Date;
   error?: string;
   errorType?: string;
+  model?: string;
 }
 
 export interface Provider {
@@ -49,5 +50,6 @@ export interface ChatResponse {
   providerId: ProviderId;
   content: string;
   error?: string;
+  model?: string;
 }
 

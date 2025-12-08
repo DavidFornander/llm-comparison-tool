@@ -16,9 +16,12 @@ export class CohereProvider extends LLMProvider {
       throw new Error('Invalid API key');
     }
 
-    const model = (options?.model as string) || 'command';
+    const model = options?.model as string;
+    if (!model) {
+      throw new Error('Model name is required. Please select a model in the UI or set a default model in settings.');
+    }
     const temperature = (options?.temperature as number) || 0.7;
-    const maxTokens = (options?.maxTokens as number) || 1000;
+    const maxTokens = (options?.maxTokens as number) || 8192;
 
     const requestDetails: RequestDetails = {
       url: 'https://api.cohere.ai/v1/generate',

@@ -34,15 +34,15 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in"
       onClick={onClose}
     >
       <div 
-        className="glass-card rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden my-auto animate-slide-up"
+        className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden my-auto animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="glass sticky top-0 px-4 sm:px-6 py-4 z-10">
+        <div className="bg-card sticky top-0 px-4 sm:px-6 py-4 z-10 border-b border-border">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
               Settings

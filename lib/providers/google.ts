@@ -135,13 +135,18 @@ export class GoogleProvider extends LLMProvider {
 
     // Get model name - model names should already be normalized from fetchAvailableModels()
     // Only strip "models/" prefix as a safety check in case a model path somehow gets through
-    let modelName = (options?.model as string) || 'gemini-1.5-flash';
+    const providedModel = options?.model as string;
+    if (!providedModel) {
+      throw new Error('Model name is required. Please select a model in the UI or set a default model in settings.');
+    }
+    let modelName = providedModel;
     if (modelName.startsWith('models/')) {
       modelName = modelName.replace(/^models\//, '');
     }
+    console.log(`[Google Provider] Using model: ${modelName}`);
     
     const temperature = (options?.temperature as number) || 0.7;
-    const maxTokens = (options?.maxTokens as number) || 1000;
+    const maxTokens = (options?.maxTokens as number) || 8192;
 
     const genAI = new GoogleGenerativeAI(apiKey);
 

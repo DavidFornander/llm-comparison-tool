@@ -10,6 +10,7 @@ interface ErrorDisplayProps {
   variant?: 'banner' | 'inline' | 'message';
   showDetails?: boolean;
   providerName?: string;
+  model?: string;
   className?: string;
 }
 
@@ -161,6 +162,7 @@ export default function ErrorDisplay({
   variant = 'banner',
   showDetails: initialShowDetails = false,
   providerName,
+  model,
   className = '',
 }: ErrorDisplayProps) {
   const formattedError = formatErrorMessage(error);
@@ -182,6 +184,11 @@ export default function ErrorDisplay({
                 {providerName && (
                   <div className={`text-xs font-semibold ${config.textColor} mb-1`}>
                     {providerName}
+                    {model && (
+                      <span className="font-normal opacity-75">
+                        {' '}- {model}
+                      </span>
+                    )}
                   </div>
                 )}
                 <p className={`${config.textColor} text-sm font-medium break-words whitespace-pre-wrap`}>
@@ -255,6 +262,11 @@ export default function ErrorDisplay({
             {providerName && (
               <div className={`text-xs font-semibold ${config.textColor} mb-1`}>
                 {providerName}
+                {model && (
+                  <span className="font-normal opacity-75">
+                    {' '}- {model}
+                  </span>
+                )}
               </div>
             )}
             <p className={`${config.textColor} text-sm font-medium break-words whitespace-pre-wrap`}>

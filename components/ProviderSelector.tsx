@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { providerRegistry } from '@/lib/provider-registry';
 import { isProviderEnabled } from '@/lib/storage';
 import type { ProviderId } from '@/types';
@@ -23,6 +24,13 @@ export default function ProviderSelector({
   onModelChange,
 }: ProviderSelectorProps) {
   const providers = providerRegistry.getConfigs();
+  const [enabledProviders, setEnabledProviders] = useState(providers);
+
+  // Filter providers client-side only to avoid hydration mismatch
+  useEffect(() => {
+    const enabled = providers.filter(p => isProviderEnabled(p.id));
+    setEnabledProviders(enabled);
+  }, [providers]);
 
   const toggleProvider = (providerId: ProviderId) => {
     if (selectedProviders.includes(providerId)) {
@@ -33,8 +41,8 @@ export default function ProviderSelector({
   };
 
   const selectAll = () => {
-    const available = providers
-      .filter(p => availableApiKeys.has(p.id) && isProviderEnabled(p.id))
+    const available = enabledProviders
+      .filter(p => availableApiKeys.has(p.id))
       .map(p => p.id);
     onSelectionChange(available);
   };
@@ -43,8 +51,6 @@ export default function ProviderSelector({
     onSelectionChange([]);
   };
 
-  // Filter providers to only show enabled ones
-  const enabledProviders = providers.filter(p => isProviderEnabled(p.id));
   const availableCount = enabledProviders.filter(p => availableApiKeys.has(p.id)).length;
   const allSelected = selectedProviders.length === availableCount && availableCount > 0;
 

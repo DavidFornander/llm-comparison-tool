@@ -74,21 +74,18 @@ export default function ComparisonView({
           return (
             <div key={turnId} className="space-y-4">
               {/* User Message */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">
-                      You
-                    </div>
-                    <MarkdownRenderer
-                      content={group.userMessage.content}
-                      className="break-words"
-                    />
-                    <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                      {new Date(group.userMessage.timestamp).toLocaleTimeString()}
-                    </div>
+              <div className="flex justify-end group/message">
+                <div className="max-w-[85%] sm:max-w-[75%] bg-primary text-primary-foreground rounded-[1.25rem] rounded-tr-sm px-5 py-3.5 shadow-md shadow-primary/10 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20 relative">
+                  <MarkdownRenderer
+                    content={group.userMessage.content}
+                    className="text-primary-foreground break-words prose-invert leading-relaxed"
+                  />
+                  <div className="text-[10px] text-primary-foreground/70 mt-1.5 flex justify-end opacity-70 group-hover/message:opacity-100 transition-opacity">
+                    {new Date(group.userMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
-                  <MessageActions message={group.userMessage} onDelete={onDelete ? () => onDelete(group.userMessage.id) : undefined} />
+                  <div className="absolute -top-8 right-0 opacity-0 group-hover/message:opacity-100 transition-all duration-200 scale-95 group-hover/message:scale-100">
+                    <MessageActions message={group.userMessage} onDelete={onDelete ? () => onDelete(group.userMessage.id) : undefined} />
+                  </div>
                 </div>
               </div>
 
@@ -97,12 +94,23 @@ export default function ComparisonView({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {selectedProviders.map((providerId) => {
                     const provider = providerRegistry.get(providerId);
+                    // Brand colors for provider names
+                    const providerTextColors: Record<ProviderId, string> = {
+                      openai: 'text-emerald-600 dark:text-emerald-400',
+                      anthropic: 'text-amber-600 dark:text-amber-400',
+                      google: 'text-blue-600 dark:text-blue-400',
+                      cohere: 'text-rose-600 dark:text-rose-400',
+                      grok: 'text-zinc-900 dark:text-zinc-100',
+                    };
+                    const brandTextColor = providerTextColors[providerId] || 'text-foreground';
+                    
                     return (
                       <div
                         key={providerId}
-                        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                        className="rounded-[1.25rem] rounded-tl-sm px-6 py-5 shadow-sm bg-card/50 dark:bg-card/40 backdrop-blur-sm border border-border/60 animate-slide-up"
                       >
-                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                        <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-3 ${brandTextColor}`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75"></span>
                           {provider?.displayName}
                         </div>
                         <LoadingSkeleton lines={4} />
@@ -117,77 +125,87 @@ export default function ComparisonView({
                     const provider = providerRegistry.get(providerId);
                     const isError = response?.error ? true : false;
                     
+                    // Brand colors for provider names
+                    const providerTextColors: Record<ProviderId, string> = {
+                      openai: 'text-emerald-600 dark:text-emerald-400',
+                      anthropic: 'text-amber-600 dark:text-amber-400',
+                      google: 'text-blue-600 dark:text-blue-400',
+                      cohere: 'text-rose-600 dark:text-rose-400',
+                      grok: 'text-zinc-900 dark:text-zinc-100',
+                    };
+                    const brandTextColor = (providerId && providerTextColors[providerId]) || 'text-foreground';
+                    
                     return (
                       <div
                         key={providerId}
-                        className={`border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow ${
-                          isError
-                            ? ''
-                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                        }`}
+                        className="flex justify-start group/response"
                       >
-                        {isError && response ? (
-                          <div>
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <ErrorDisplay
-                                  error={response.error!}
-                                  variant="inline"
-                                  providerName={provider?.displayName}
-                                  onRetry={onRegenerate ? () => onRegenerate(providerId, response.id) : undefined}
-                                  className="mb-0"
-                                />
-                              </div>
-                              <MessageActions
-                                message={response}
-                                onDelete={onDelete ? () => onDelete(response.id) : undefined}
+                        <div className={`
+                          w-full rounded-[1.25rem] rounded-tl-sm px-6 py-5 shadow-sm hover:shadow-md
+                          bg-card/50 dark:bg-card/40 backdrop-blur-sm border border-border/60
+                          relative animate-slide-up transition-all duration-200 hover:bg-card/80 hover:border-border/80
+                        `}>
+                          {isError && response ? (
+                            <div className="w-full">
+                              <ErrorDisplay
+                                error={response.error!}
+                                variant="message"
+                                providerName={provider?.displayName}
+                                model={response.model}
+                                onRetry={onRegenerate ? () => onRegenerate(providerId, response.id) : undefined}
+                                className="w-full relative group animate-slide-up shadow-sm rounded-2xl border-red-100 dark:border-red-900/30"
                               />
                             </div>
-                            <div className="text-xs mt-2 text-gray-500 dark:text-gray-400">
-                              {new Date(response.timestamp).toLocaleTimeString()}
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                {provider?.displayName}
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between mb-3 border-b border-border/30 pb-3">
+                                <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${brandTextColor}`}>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75"></span>
+                                  {provider?.displayName}
+                                  {response?.model && (
+                                    <span className="text-[10px] font-normal normal-case opacity-75">
+                                      - {response.model}
+                                    </span>
+                                  )}
+                                </div>
+                                {response && (
+                                  <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                                    <MessageActions
+                                      message={response}
+                                      onRegenerate={onRegenerate ? () => onRegenerate(providerId, response.id) : undefined}
+                                      onDelete={onDelete ? () => onDelete(response.id) : undefined}
+                                    />
+                                  </div>
+                                )}
                               </div>
+                              
+                              <div
+                                ref={(el) => {
+                                  if (el) scrollRefs.current.set(`${turnId}-${providerId}`, el);
+                                }}
+                                onScroll={() => handleScroll(`${turnId}-${providerId}`)}
+                                className="max-h-96 overflow-y-auto scrollbar-hide"
+                              >
+                                {response ? (
+                                  <MarkdownRenderer
+                                    content={response.content}
+                                    className="break-words text-foreground/90 leading-relaxed"
+                                  />
+                                ) : (
+                                  <div className="text-muted-foreground/60 text-sm italic">
+                                    No response yet...
+                                  </div>
+                                )}
+                              </div>
+                              
                               {response && (
-                                <MessageActions
-                                  message={response}
-                                  onRegenerate={onRegenerate ? () => onRegenerate(providerId, response.id) : undefined}
-                                  onDelete={onDelete ? () => onDelete(response.id) : undefined}
-                                />
-                              )}
-                            </div>
-                            
-                            <div
-                              ref={(el) => {
-                                if (el) scrollRefs.current.set(`${turnId}-${providerId}`, el);
-                              }}
-                              onScroll={() => handleScroll(`${turnId}-${providerId}`)}
-                              className="max-h-96 overflow-y-auto scrollbar-hide"
-                            >
-                              {response ? (
-                              <MarkdownRenderer
-                                content={response.content}
-                                className="break-words text-gray-700 dark:text-gray-300"
-                              />
-                              ) : (
-                                <div className="text-gray-400 dark:text-gray-600 text-sm italic">
-                                  No response yet...
+                                <div className="text-[10px] mt-3 text-muted-foreground/60 flex justify-end opacity-0 group-hover/response:opacity-100 transition-opacity">
+                                  {new Date(response.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </div>
                               )}
-                            </div>
-                            
-                            {response && (
-                              <div className="text-xs mt-2 text-gray-500 dark:text-gray-400">
-                                {new Date(response.timestamp).toLocaleTimeString()}
-                              </div>
-                            )}
-                          </>
-                        )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
