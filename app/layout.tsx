@@ -28,7 +28,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning className="bg-background text-foreground min-h-screen antialiased overflow-hidden">{children}</body>
     </html>
   );
 }

@@ -307,24 +307,24 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="flex flex-col h-screen bg-background text-foreground transition-colors overflow-hidden">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <header className="glass sticky top-0 z-10 border-b border-border/40 px-4 sm:px-6 py-4">
+        <div className="flex items-center justify-between flex-wrap gap-2 max-w-7xl mx-auto w-full">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
             LLM Comparison Tool
           </h1>
           <div className="flex items-center gap-2">
             {messages.length > 0 && (
               <>
-                <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border/50">
                   <button
                     onClick={() => setViewMode('chat')}
                     className={`
-                      px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors
+                      px-3 py-1.5 text-xs sm:text-sm rounded-md transition-all duration-200 font-medium
                       ${viewMode === 'chat'
-                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                        ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                       }
                     `}
                   >
@@ -333,10 +333,10 @@ export default function ChatInterface() {
                   <button
                     onClick={() => setViewMode('comparison')}
                     className={`
-                      px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors
+                      px-3 py-1.5 text-xs sm:text-sm rounded-md transition-all duration-200 font-medium
                       ${viewMode === 'comparison'
-                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                        ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
                       }
                     `}
                   >
@@ -345,7 +345,7 @@ export default function ChatInterface() {
                 </div>
                 <button
                   onClick={() => setShowExportDialog(true)}
-                  className="px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
                   title="Export conversation"
                 >
                   <svg
@@ -364,33 +364,40 @@ export default function ChatInterface() {
                 </button>
                 <button
                   onClick={clearMessages}
-                  className="px-3 sm:px-4 py-2 text-sm sm:text-base text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  className="px-3 sm:px-4 py-2 text-sm sm:text-base text-destructive hover:text-destructive-foreground hover:bg-destructive/90 rounded-lg transition-colors font-medium"
                 >
                   Clear
                 </button>
               </>
             )}
+            <div className="h-6 w-px bg-border/50 mx-1" />
             <ThemeToggle />
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="px-3 sm:px-4 py-2 text-sm sm:text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+              title="Settings"
             >
-              Settings
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Provider Selector */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 shadow-sm">
-        <ProviderSelector
-          selectedProviders={selectedProviders}
-          onSelectionChange={setSelectedProviders}
-          availableApiKeys={availableApiKeys}
-          serverSideKeys={serverSideKeys}
-          selectedModels={selectedModels}
-          onModelChange={handleModelChange}
-        />
+      <div className="bg-background/50 backdrop-blur-sm border-b border-border/40 px-4 sm:px-6 py-6">
+        <div className="max-w-7xl mx-auto w-full">
+          <ProviderSelector
+            selectedProviders={selectedProviders}
+            onSelectionChange={setSelectedProviders}
+            availableApiKeys={availableApiKeys}
+            serverSideKeys={serverSideKeys}
+            selectedModels={selectedModels}
+            onModelChange={handleModelChange}
+          />
+        </div>
       </div>
 
       {/* Error Display */}
@@ -404,64 +411,73 @@ export default function ChatInterface() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto relative scroll-smooth scrollbar-thin">
-        {messages.length === 0 ? (
-          <EmptyState
-            type={selectedProviders.length === 0 ? 'no-providers' : 'welcome'}
-            selectedProviders={selectedProviders}
-          />
-        ) : viewMode === 'comparison' ? (
-          <ComparisonView
-            messages={messages}
-            selectedProviders={selectedProviders}
-            isLoading={isLoading}
-            onRegenerate={handleRegenerate}
-            onDelete={handleDeleteMessage}
-          />
-        ) : (
-          <>
-            <MessageList
+        <div className="max-w-7xl mx-auto w-full h-full">
+          {messages.length === 0 ? (
+            <EmptyState
+              type={selectedProviders.length === 0 ? 'no-providers' : 'welcome'}
+              selectedProviders={selectedProviders}
+            />
+          ) : viewMode === 'comparison' ? (
+            <ComparisonView
               messages={messages}
+              selectedProviders={selectedProviders}
+              isLoading={isLoading}
               onRegenerate={handleRegenerate}
               onDelete={handleDeleteMessage}
             />
-            <div ref={messagesEndRef} />
-          </>
-        )}
+          ) : (
+            <>
+              <MessageList
+                messages={messages}
+                onRegenerate={handleRegenerate}
+                onDelete={handleDeleteMessage}
+              />
+              <div ref={messagesEndRef} className="h-4" />
+            </>
+          )}
+        </div>
 
         {isLoading && (
-          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
-              <span className="text-xs sm:text-sm">
-                Waiting for responses from {selectedProviders.length} provider(s)...
-              </span>
-            </div>
-            <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-              {selectedProviders.map((providerId) => {
-                const provider = providerRegistry.get(providerId);
-                return (
-                  <div key={providerId} className="flex items-center gap-2 text-xs">
-                    <div className="animate-pulse-slow w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-gray-500 dark:text-gray-400">{provider?.displayName}</span>
-                  </div>
-                );
-              })}
+          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 py-4 bg-background/80 backdrop-blur-md border-t border-border/40 z-20">
+            <div className="max-w-7xl mx-auto w-full">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                <span className="text-sm font-medium">
+                  Waiting for responses from {selectedProviders.length} provider(s)...
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {selectedProviders.map((providerId) => {
+                  const provider = providerRegistry.get(providerId);
+                  return (
+                    <div key={providerId} className="flex items-center gap-2 px-3 py-1.5 bg-accent/50 rounded-full border border-border/50 text-xs font-medium">
+                      <div className="animate-pulse-slow w-2 h-2 bg-primary rounded-full shadow-[0_0_8px_currentColor] text-primary"></div>
+                      <span className="text-foreground">{provider?.displayName}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Input */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 shadow-lg">
-        {selectedProviders.length === 0 ? (
-          <div className="text-center py-2">
-            <p className="text-sm text-amber-600 dark:text-amber-400">
-              Please select at least one provider to start chatting
-            </p>
-          </div>
-        ) : (
-          <MessageInput onSend={handleSend} disabled={isLoading || selectedProviders.length === 0} />
-        )}
+      <div className="bg-background/80 backdrop-blur-lg border-t border-border/40 px-4 sm:px-6 py-6 shadow-2xl shadow-black/5">
+        <div className="max-w-7xl mx-auto w-full">
+          {selectedProviders.length === 0 ? (
+            <div className="text-center py-2">
+              <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Select at least one provider above to start chatting
+              </p>
+            </div>
+          ) : (
+            <MessageInput onSend={handleSend} disabled={isLoading || selectedProviders.length === 0} />
+          )}
+        </div>
       </div>
 
       {/* Export Dialog */}

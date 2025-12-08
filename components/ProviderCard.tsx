@@ -16,19 +16,19 @@ interface ProviderCardProps {
 }
 
 const providerColors: Record<ProviderId, string> = {
-  openai: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
-  anthropic: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',
-  google: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
-  cohere: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
-  grok: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800',
+  openai: 'border-[#10a37f]/20 bg-[#10a37f]/3 hover:border-[#10a37f]/50 hover:bg-[#10a37f]/5',
+  anthropic: 'border-[#d4a574]/20 bg-[#d4a574]/3 hover:border-[#d4a574]/50 hover:bg-[#d4a574]/5',
+  google: 'border-[#4285f4]/20 bg-[#4285f4]/3 hover:border-[#4285f4]/50 hover:bg-[#4285f4]/5',
+  cohere: 'border-[#ff6b6b]/20 bg-[#ff6b6b]/3 hover:border-[#ff6b6b]/50 hover:bg-[#ff6b6b]/5',
+  grok: 'border-foreground/20 bg-foreground/3 hover:border-foreground/50 hover:bg-foreground/5',
 };
 
 const providerSelectedColors: Record<ProviderId, string> = {
-  openai: 'bg-green-100 dark:bg-green-900/40 border-green-500 dark:border-green-600',
-  anthropic: 'bg-amber-100 dark:bg-amber-900/40 border-amber-500 dark:border-amber-600',
-  google: 'bg-blue-100 dark:bg-blue-900/40 border-blue-500 dark:border-blue-600',
-  cohere: 'bg-red-100 dark:bg-red-900/40 border-red-500 dark:border-red-600',
-  grok: 'bg-gray-100 dark:bg-gray-900/40 border-gray-500 dark:border-gray-600',
+  openai: 'border-[#10a37f] bg-[#10a37f]/10 ring-1 ring-[#10a37f]/50',
+  anthropic: 'border-[#d4a574] bg-[#d4a574]/10 ring-1 ring-[#d4a574]/50',
+  google: 'border-[#4285f4] bg-[#4285f4]/10 ring-1 ring-[#4285f4]/50',
+  cohere: 'border-[#ff6b6b] bg-[#ff6b6b]/10 ring-1 ring-[#ff6b6b]/50',
+  grok: 'border-foreground bg-foreground/10 ring-1 ring-foreground/50',
 };
 
 // Cache key for localStorage
@@ -186,63 +186,54 @@ export default function ProviderCard({
   const showModelSelector = isSelected && isAvailable && availableModels.length > 0;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <button
         type="button"
         onClick={onClick}
         disabled={!isAvailable}
         className={`
-          relative p-4 rounded-lg border-2 transition-all text-left
+          relative p-4 rounded-xl border transition-all duration-200 text-left h-full flex flex-col
           ${baseColors}
-          ${isSelected ? 'ring-2 ring-offset-2 ring-blue-500 dark:ring-blue-400' : ''}
+          ${!isSelected ? 'shadow-sm hover:shadow-md hover:-translate-y-0.5' : 'shadow-md'}
           ${isAvailable 
-            ? 'hover:scale-105 cursor-pointer' 
-            : 'opacity-50 cursor-not-allowed'
+            ? 'cursor-pointer opacity-100' 
+            : 'opacity-60 cursor-not-allowed grayscale-[30%]' /* Reduced grayscale to show color hints */
           }
-          ${isSelected ? 'shadow-md' : 'shadow-sm hover:shadow-md'}
         `}
         title={!isAvailable ? `API key not set for ${provider.displayName}` : ''}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between w-full mb-2">
           <div className="flex items-center gap-3">
             <div className={`
-              w-3 h-3 rounded-full
+              w-2.5 h-2.5 rounded-full shadow-sm
               ${isSelected 
-                ? 'bg-blue-500 dark:bg-blue-400' 
-                : 'bg-gray-300 dark:bg-gray-600'
+                ? 'bg-primary animate-pulse-slow' 
+                : 'bg-muted-foreground/30'
               }
             `} />
-            <div>
-              <div className="font-semibold text-gray-900 dark:text-gray-100">
-                {provider.displayName}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {provider.name}
-              </div>
-            </div>
+            <span className="font-semibold text-sm tracking-tight text-foreground">
+              {provider.displayName}
+            </span>
           </div>
           {isSelected && (
-            <svg
-              className="w-5 h-5 text-blue-500 dark:text-blue-400"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <div className="text-primary">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
           )}
+        </div>
+        <div className="text-xs text-muted-foreground pl-5.5">
+          {provider.name}
         </div>
       </button>
       
       {showModelSelector && (
-        <div className="mt-2">
+        <div className="mt-2 animate-fade-in">
           <select
             value={currentSelectedModel}
             onChange={handleModelChange}
-            className="w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+            className="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 hover:border-primary/50 transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
             {availableModels.map((model) => (
@@ -255,17 +246,16 @@ export default function ProviderCard({
       )}
       
       {isSelected && isAvailable && isLoadingModels && (
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-2 text-xs text-muted-foreground pl-1 animate-pulse">
           Loading models...
         </div>
       )}
       
       {isSelected && isAvailable && modelError && !isLoadingModels && availableModels.length === 0 && (
-        <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+        <div className="mt-2 text-xs text-amber-500 pl-1">
           Using default model
         </div>
       )}
-      
     </div>
   );
 }

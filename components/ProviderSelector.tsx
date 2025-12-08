@@ -50,23 +50,23 @@ export default function ProviderSelector({
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-3">
-        <label className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <label className="block text-sm font-semibold text-foreground">
           Select Providers to Compare
         </label>
         {availableCount > 0 && (
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {!allSelected ? (
               <button
                 onClick={selectAll}
-                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
               >
                 Select All
               </button>
             ) : (
               <button
                 onClick={deselectAll}
-                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline transition-colors"
               >
                 Deselect All
               </button>
@@ -75,7 +75,7 @@ export default function ProviderSelector({
         )}
       </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {enabledProviders.map((provider) => {
           const hasApiKey = availableApiKeys.has(provider.id);
           const isSelected = selectedProviders.includes(provider.id);
@@ -96,13 +96,19 @@ export default function ProviderSelector({
       </div>
       
       {enabledProviders.length === 0 && (
-        <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
+        <p className="mt-4 text-sm text-amber-500 flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
           No providers are enabled. Please enable at least one provider in Settings.
         </p>
       )}
       
-      {selectedProviders.length === 0 && (
-        <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
+      {selectedProviders.length === 0 && enabledProviders.length > 0 && (
+        <p className="mt-4 text-sm text-muted-foreground flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           Please select at least one provider to start comparing
         </p>
       )}

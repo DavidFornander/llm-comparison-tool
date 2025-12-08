@@ -41,23 +41,23 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
       {groupedMessages.map((group) => (
         <div key={group.userMessage.id} className="space-y-3 animate-slide-up">
           {/* User Message */}
-          <div className="flex justify-end">
-            <div className="max-w-[85%] sm:max-w-[75%] bg-blue-500 dark:bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-md relative group">
+          <div className="flex justify-end group/message">
+            <div className="max-w-[85%] sm:max-w-[75%] bg-primary text-primary-foreground rounded-[1.25rem] rounded-tr-sm px-5 py-3.5 shadow-md shadow-primary/10 transition-all duration-200 hover:shadow-lg hover:shadow-primary/20 relative">
               <MarkdownRenderer
                 content={group.userMessage.content}
-                className="text-white break-words"
+                className="text-primary-foreground break-words prose-invert leading-relaxed"
               />
-              <div className="text-xs text-blue-100 mt-2 opacity-75">
-                {new Date(group.userMessage.timestamp).toLocaleTimeString()}
+              <div className="text-[10px] text-primary-foreground/70 mt-1.5 flex justify-end opacity-70 group-hover/message:opacity-100 transition-opacity">
+                {new Date(group.userMessage.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
-              <div className="absolute -top-10 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute -top-8 right-0 opacity-0 group-hover/message:opacity-100 transition-all duration-200 scale-95 group-hover/message:scale-100">
                 <MessageActions message={group.userMessage} onDelete={onDelete ? () => onDelete(group.userMessage.id) : undefined} />
               </div>
             </div>
           </div>
 
           {/* Assistant Responses */}
-          <div className="space-y-2">
+          <div className="space-y-4 pl-2 sm:pl-0">
             {group.responses.map((response) => {
               const provider = response.providerId
                 ? providerRegistry.get(response.providerId)
@@ -65,63 +65,46 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
 
               if (!provider) return null;
 
-              const providerColors: Record<ProviderId, { bg: string; border: string; text: string }> = {
-                openai: {
-                  bg: 'bg-green-50 dark:bg-green-900/20',
-                  border: 'border-green-200 dark:border-green-800',
-                  text: 'text-green-700 dark:text-green-300',
-                },
-                anthropic: {
-                  bg: 'bg-amber-50 dark:bg-amber-900/20',
-                  border: 'border-amber-200 dark:border-amber-800',
-                  text: 'text-amber-700 dark:text-amber-300',
-                },
-                google: {
-                  bg: 'bg-blue-50 dark:bg-blue-900/20',
-                  border: 'border-blue-200 dark:border-blue-800',
-                  text: 'text-blue-700 dark:text-blue-300',
-                },
-                cohere: {
-                  bg: 'bg-red-50 dark:bg-red-900/20',
-                  border: 'border-red-200 dark:border-red-800',
-                  text: 'text-red-700 dark:text-red-300',
-                },
-                grok: {
-                  bg: 'bg-gray-50 dark:bg-gray-900/20',
-                  border: 'border-gray-200 dark:border-gray-800',
-                  text: 'text-gray-700 dark:text-gray-300',
-                },
+              // Refined brand colors (using CSS variables/classes where possible or keeping distinct brand identities)
+              // Using opacity for a more integrated look
+              const providerTextColors: Record<ProviderId, string> = {
+                openai: 'text-emerald-600 dark:text-emerald-400',
+                anthropic: 'text-amber-600 dark:text-amber-400',
+                google: 'text-blue-600 dark:text-blue-400',
+                cohere: 'text-rose-600 dark:text-rose-400',
+                grok: 'text-zinc-900 dark:text-zinc-100',
               };
 
-              const colors = (response.providerId && providerColors[response.providerId]) || providerColors.grok;
+              const brandTextColor = (response.providerId && providerTextColors[response.providerId]) || 'text-foreground';
               const isError = !!response.error;
 
               if (isError) {
                 return (
-                  <div key={response.id} className="flex justify-start max-w-[85%] sm:max-w-[75%]">
+                  <div key={response.id} className="flex justify-start max-w-[90%] sm:max-w-[80%]">
                     <ErrorDisplay
                       error={response.error!}
                       variant="message"
                       providerName={provider.displayName}
                       onRetry={onRegenerate ? () => onRegenerate(response.providerId!, response.id) : undefined}
-                      className="w-full relative group animate-slide-up"
+                      className="w-full relative group animate-slide-up shadow-sm rounded-2xl border-red-100 dark:border-red-900/30"
                     />
                   </div>
                 );
               }
 
               return (
-                <div key={response.id} className="flex justify-start">
+                <div key={response.id} className="flex justify-start group/response">
                   <div className={`
-                    max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-tl-sm px-4 py-3 shadow-md
-                    border-2 ${colors.bg} ${colors.border}
-                    relative group animate-slide-up
+                    max-w-[90%] sm:max-w-[80%] rounded-[1.25rem] rounded-tl-sm px-6 py-5 shadow-sm hover:shadow-md
+                    bg-card/50 dark:bg-card/40 backdrop-blur-sm border border-border/60
+                    relative animate-slide-up transition-all duration-200 hover:bg-card/80 hover:border-border/80
                   `}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`text-xs font-semibold flex items-center gap-2 ${colors.text}`}>
+                    <div className="flex items-center justify-between mb-3 border-b border-border/30 pb-3">
+                      <div className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${brandTextColor}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75"></span>
                         {provider.displayName}
                       </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
                         <MessageActions
                           message={response}
                           onRegenerate={onRegenerate ? () => onRegenerate(response.providerId!, response.id) : undefined}
@@ -131,10 +114,10 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
                     </div>
                     <MarkdownRenderer
                       content={response.content}
-                      className="break-words"
+                      className="break-words text-foreground/90 leading-relaxed"
                     />
-                    <div className={`text-xs mt-2 text-gray-500 dark:text-gray-400`}>
-                      {new Date(response.timestamp).toLocaleTimeString()}
+                    <div className="text-[10px] mt-3 text-muted-foreground/60 flex justify-end opacity-0 group-hover/response:opacity-100 transition-opacity">
+                      {new Date(response.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 </div>

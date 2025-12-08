@@ -34,24 +34,24 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in"
       onClick={onClose}
     >
       <div 
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden my-auto"
+        className="glass-card rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden my-auto animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 shadow-sm z-10">
+        <div className="glass sticky top-0 px-4 sm:px-6 py-4 z-10">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
               Settings
             </h1>
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <button
                 onClick={onClose}
-                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200"
                 aria-label="Close settings"
               >
                 <svg
@@ -73,7 +73,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
 
         {/* Content */}
-        <div className="p-0 sm:p-0 max-h-[calc(90vh-64px)] overflow-y-auto">
+        <div className="max-h-[calc(90vh-80px)] overflow-y-auto scrollbar-thin">
           <div className="p-4 sm:p-6">
             <SettingsForm />
           </div>
