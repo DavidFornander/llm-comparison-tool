@@ -64,6 +64,38 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
     p({ children }) {
       return <p className="leading-7">{children}</p>;
     },
+    table({ children }) {
+      return (
+        <div className="overflow-x-auto my-4">
+          <table className="min-w-full border-collapse border border-border/60 rounded-lg overflow-hidden">
+            {children}
+          </table>
+        </div>
+      );
+    },
+    thead({ children }) {
+      return <thead className="bg-muted/50">{children}</thead>;
+    },
+    tbody({ children }) {
+      return <tbody className="divide-y divide-border/40">{children}</tbody>;
+    },
+    tr({ children }) {
+      return <tr className="hover:bg-muted/30 transition-colors">{children}</tr>;
+    },
+    th({ children }) {
+      return (
+        <th className="border border-border/60 px-4 py-2 text-left font-semibold text-sm bg-muted/70">
+          {children}
+        </th>
+      );
+    },
+    td({ children }) {
+      return (
+        <td className="border border-border/60 px-4 py-2 text-sm">
+          {children}
+        </td>
+      );
+    },
   };
 
   return (

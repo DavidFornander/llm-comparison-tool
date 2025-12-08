@@ -6,6 +6,9 @@ import { logSuspiciousActivity } from '@/lib/security/audit-logger';
 import config from '@/lib/config';
 import type { ProviderId } from '@/types';
 
+// Increase timeout for models API (30 seconds)
+export const maxDuration = 30;
+
 /**
  * GET /api/models - Fetch available models for a provider
  * Query parameters:

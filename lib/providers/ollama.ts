@@ -92,7 +92,7 @@ export class OllamaProvider extends LLMProvider {
           method: 'GET',
           headers: this.buildHeaders(apiKey),
         }),
-        10000 // 10 second timeout for model listing
+        30000 // 30 second timeout for model listing
       );
 
       const responseHeaders: Record<string, string> = {};
@@ -256,7 +256,7 @@ export class OllamaProvider extends LLMProvider {
           },
           body: JSON.stringify(requestBody),
         }),
-        60000 // 60 second timeout for chat completion
+        config.request.timeoutMs // Use configurable timeout (default: 5 minutes)
       );
 
       const responseHeaders: Record<string, string> = {};

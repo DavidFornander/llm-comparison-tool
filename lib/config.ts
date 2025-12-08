@@ -108,7 +108,7 @@ export const config: Config = {
   },
   request: {
     maxSizeMB: getEnvNumber('MAX_REQUEST_SIZE_MB', 10),
-    timeoutMs: getEnvNumber('REQUEST_TIMEOUT_MS', 60000),
+    timeoutMs: getEnvNumber('REQUEST_TIMEOUT_MS', 300000), // 5 minutes default
   },
 };
 

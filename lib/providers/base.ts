@@ -89,7 +89,7 @@ export abstract class LLMProvider {
    */
   protected async withTimeout<T>(
     promise: Promise<T>,
-    timeoutMs: number = 60000
+    timeoutMs: number = 300000 // 5 minutes default
   ): Promise<T> {
     return Promise.race([promise, this.createTimeout(timeoutMs)]);
   }

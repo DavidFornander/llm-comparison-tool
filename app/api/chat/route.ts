@@ -10,6 +10,9 @@ import config from '@/lib/config';
 import type { ChatRequest, ChatResponse, ProviderId } from '@/types';
 import { createModeratorPrompt } from '@/lib/utils/moderator';
 
+// Increase timeout for chat API (5 minutes = 300 seconds)
+export const maxDuration = 300;
+
 export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
   const userAgent = request.headers.get('user-agent') || undefined;
