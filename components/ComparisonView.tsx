@@ -14,6 +14,8 @@ interface ComparisonViewProps {
   isLoading: boolean;
   onRegenerate?: (providerId: ProviderId, messageId: string) => void;
   onDelete?: (messageId: string) => void;
+  moderatorProvider?: ProviderId | null;
+  moderatorModel?: string | undefined;
 }
 
 export default function ComparisonView({
@@ -22,6 +24,8 @@ export default function ComparisonView({
   isLoading,
   onRegenerate,
   onDelete,
+  moderatorProvider,
+  moderatorModel,
 }: ComparisonViewProps) {
   const scrollRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -117,6 +121,18 @@ export default function ComparisonView({
                       </div>
                     );
                   })}
+                  {/* Moderator loading card */}
+                  {moderatorProvider && moderatorModel && (
+                    <div className="flex justify-start group/response">
+                      <div className="w-full rounded-[1.25rem] rounded-tl-sm px-6 py-5 shadow-sm bg-card/50 dark:bg-card/40 backdrop-blur-sm border-2 border-primary/50 animate-slide-up">
+                        <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-3 text-primary">
+                          <span>🎯</span>
+                          <span>Moderator</span>
+                        </div>
+                        <LoadingSkeleton lines={4} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -209,6 +225,84 @@ export default function ComparisonView({
                       </div>
                     );
                   })}
+                  {/* Moderator card */}
+                  {moderatorProvider && moderatorModel && (() => {
+                    const moderatorResponse = group.responses.find(r => r.providerId === 'moderator');
+                    const moderatorProviderInfo = providerRegistry.get(moderatorProvider);
+                    const isError = moderatorResponse?.error ? true : false;
+                    
+                    return (
+                      <div
+                        key="moderator"
+                        className="flex justify-start group/response"
+                      >
+                        <div className={`
+                          w-full rounded-[1.25rem] rounded-tl-sm px-6 py-5 shadow-sm hover:shadow-md
+                          bg-card/50 dark:bg-card/40 backdrop-blur-sm border-2 border-primary/50
+                          relative animate-slide-up transition-all duration-200 hover:bg-card/80 hover:border-primary/70
+                        `}>
+                          {isError && moderatorResponse ? (
+                            <div className="w-full">
+                              <ErrorDisplay
+                                error={moderatorResponse.error!}
+                                variant="message"
+                                providerName={`Moderator (${moderatorProviderInfo?.displayName || moderatorProvider})`}
+                                model={moderatorResponse.model}
+                                onRetry={onRegenerate ? () => onRegenerate(moderatorProvider, moderatorResponse.id) : undefined}
+                                className="w-full relative group animate-slide-up shadow-sm rounded-2xl border-red-100 dark:border-red-900/30"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center justify-between mb-3 border-b border-border/30 pb-3">
+                                <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-primary">
+                                  <span>🎯</span>
+                                  <span>Moderator</span>
+                                  <span className="text-[10px] font-normal normal-case opacity-75">
+                                    ({moderatorProviderInfo?.displayName || moderatorProvider} - {moderatorModel})
+                                  </span>
+                                </div>
+                                {moderatorResponse && (
+                                  <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                                    <MessageActions
+                                      message={moderatorResponse}
+                                      onRegenerate={undefined}
+                                      onDelete={onDelete ? () => onDelete(moderatorResponse.id) : undefined}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div
+                                ref={(el) => {
+                                  if (el) scrollRefs.current.set(`${turnId}-moderator`, el);
+                                }}
+                                onScroll={() => handleScroll(`${turnId}-moderator`)}
+                                className="max-h-96 overflow-y-auto scrollbar-hide"
+                              >
+                                {moderatorResponse ? (
+                                  <MarkdownRenderer
+                                    content={moderatorResponse.content}
+                                    className="break-words text-foreground/90 leading-relaxed"
+                                  />
+                                ) : (
+                                  <div className="text-muted-foreground/60 text-sm italic">
+                                    Analyzing responses...
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {moderatorResponse && (
+                                <div className="text-[10px] mt-3 text-muted-foreground/60 flex justify-end opacity-0 group-hover/response:opacity-100 transition-opacity">
+                                  {new Date(moderatorResponse.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>

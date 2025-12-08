@@ -59,9 +59,63 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
           {/* Assistant Responses */}
           <div className="space-y-4 pl-2 sm:pl-0">
             {group.responses.map((response) => {
-              const provider = response.providerId
+              const isModerator = response.providerId === 'moderator';
+              const provider = response.providerId && !isModerator
                 ? providerRegistry.get(response.providerId)
                 : null;
+
+              // Handle moderator messages
+              if (isModerator) {
+                const isError = !!response.error;
+                if (isError) {
+                  return (
+                    <div key={response.id} className="flex justify-start max-w-[90%] sm:max-w-[80%]">
+                      <ErrorDisplay
+                        error={response.error!}
+                        variant="message"
+                        providerName="Moderator"
+                        model={response.model}
+                        className="w-full relative group animate-slide-up shadow-sm rounded-2xl border-red-100 dark:border-red-900/30"
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={response.id} className="flex justify-start group/response">
+                    <div className={`
+                      max-w-[90%] sm:max-w-[80%] rounded-[1.25rem] rounded-tl-sm px-6 py-5 shadow-sm hover:shadow-md
+                      bg-card/50 dark:bg-card/40 backdrop-blur-sm border-2 border-primary/50
+                      relative animate-slide-up transition-all duration-200 hover:bg-card/80 hover:border-primary/70
+                    `}>
+                      <div className="flex items-center justify-between mb-3 border-b border-border/30 pb-3">
+                        <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-primary">
+                          <span>🎯</span>
+                          <span>Moderator</span>
+                          {response.model && (
+                            <span className="text-[10px] font-normal normal-case opacity-75">
+                              - {response.model}
+                            </span>
+                          )}
+                        </div>
+                        <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                          <MessageActions
+                            message={response}
+                            onDelete={onDelete ? () => onDelete(response.id) : undefined}
+                          />
+                        </div>
+                      </div>
+                      <MarkdownRenderer
+                        content={response.content}
+                        className="break-words text-foreground/90 leading-relaxed"
+                      />
+                      <div className="text-[10px] mt-3 text-muted-foreground/60 flex justify-end opacity-0 group-hover/response:opacity-100 transition-opacity">
+                        {new Date(response.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               if (!provider) return null;
 

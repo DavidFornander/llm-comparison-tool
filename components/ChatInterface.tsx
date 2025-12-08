@@ -12,6 +12,7 @@ import EmptyState from './EmptyState';
 import ThemeToggle from './ThemeToggle';
 import ExportDialog from './ExportDialog';
 import SettingsModal from './SettingsModal';
+import ModeratorDropdown from './ModeratorDropdown';
 import { initTheme } from '@/lib/utils/theme';
 import ErrorDisplay from './ErrorDisplay';
 import { categorizeError } from '@/lib/utils/error-formatter';
@@ -30,6 +31,10 @@ export default function ChatInterface() {
   const [viewMode, setViewMode] = useState<'chat' | 'comparison'>('chat');
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [moderatorProvider, setModeratorProvider] = useState<ProviderId | null>(null);
+  const [moderatorModel, setModeratorModel] = useState<string | undefined>(undefined);
+  const [moderatorModels, setModeratorModels] = useState<Record<ProviderId, string[]>>({});
+  const [isLoadingModeratorModels, setIsLoadingModeratorModels] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Initialize theme
@@ -84,6 +89,78 @@ export default function ChatInterface() {
 
     setAvailableApiKeys(available);
   }, [messages, serverSideKeys]);
+
+  // Fetch models for all enabled providers with API keys (for moderator dropdown)
+  useEffect(() => {
+    const fetchAllModels = async () => {
+      if (availableApiKeys.size === 0) {
+        return;
+      }
+
+      setIsLoadingModeratorModels(true);
+      const modelsMap: Record<ProviderId, string[]> = {};
+
+      // Filter to only enabled providers with API keys
+      const enabledProvidersWithKeys = Array.from(availableApiKeys).filter((providerId) =>
+        isProviderEnabled(providerId)
+      );
+
+      const fetchPromises = enabledProvidersWithKeys.map(async (providerId) => {
+        try {
+          // Check cache first
+          const cacheKey = `models_${providerId}`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            const cachedData = JSON.parse(cached);
+            const now = Date.now();
+            if (now - cachedData.timestamp < 3600000) { // 1 hour cache
+              modelsMap[providerId] = cachedData.models;
+              return;
+            }
+          }
+
+          // Get API key
+          let apiKey: string | null = null;
+          if (!serverSideKeys.has(providerId)) {
+            apiKey = getApiKey(providerId);
+          }
+
+          // Build query parameters
+          const params = new URLSearchParams({ providerId });
+          if (apiKey) {
+            params.append('apiKey', apiKey);
+          }
+
+          const response = await fetch(`/api/models?${params.toString()}`);
+          if (response.ok) {
+            const data = await response.json();
+            const models = data.models || [];
+            if (models.length > 0) {
+              modelsMap[providerId] = models;
+              // Cache the models
+              try {
+                const cacheData = {
+                  models,
+                  timestamp: Date.now(),
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+              } catch (error) {
+                console.warn('Failed to cache models:', error);
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching models for ${providerId}:`, error);
+        }
+      });
+
+      await Promise.all(fetchPromises);
+      setModeratorModels(modelsMap);
+      setIsLoadingModeratorModels(false);
+    };
+
+    fetchAllModels();
+  }, [availableApiKeys, serverSideKeys]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -188,6 +265,21 @@ export default function ChatInterface() {
       // Log selected models for debugging
       console.log('[Model Selection] Sending request with selectedModels:', selectedModels);
       
+      // Prepare moderator config
+      const moderatorConfig = moderatorProvider && moderatorModel ? {
+        enabled: true,
+        providerId: moderatorProvider,
+        model: moderatorModel,
+      } : undefined;
+
+      // Collect moderator API key if needed
+      if (moderatorConfig && !serverSideKeys.has(moderatorProvider)) {
+        const moderatorKey = getApiKey(moderatorProvider);
+        if (moderatorKey) {
+          apiKeys[moderatorProvider] = moderatorKey;
+        }
+      }
+      
       // Always send selectedModels, even if empty, so API can use it
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -197,6 +289,7 @@ export default function ChatInterface() {
           providerIds: selectedProviders,
           apiKeys,
           selectedModels: selectedModels,
+          moderator: moderatorConfig,
         }),
       });
 
@@ -324,6 +417,20 @@ export default function ChatInterface() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
             LLM Comparison Tool
           </h1>
+          <div className="flex-1 flex justify-center px-4">
+            <ModeratorDropdown
+              moderatorProvider={moderatorProvider}
+              moderatorModel={moderatorModel}
+              availableProviders={Array.from(availableApiKeys)}
+              providerModels={moderatorModels}
+              isLoadingModels={isLoadingModeratorModels}
+              serverSideKeys={serverSideKeys}
+              onSelectionChange={(providerId, model) => {
+                setModeratorProvider(providerId);
+                setModeratorModel(model);
+              }}
+            />
+          </div>
           <div className="flex items-center gap-2">
             {messages.length > 0 && (
               <>
@@ -434,11 +541,17 @@ export default function ChatInterface() {
               isLoading={isLoading}
               onRegenerate={handleRegenerate}
               onDelete={handleDeleteMessage}
+              moderatorProvider={moderatorProvider}
+              moderatorModel={moderatorModel}
             />
           ) : (
             <>
               <MessageList
-                messages={messages}
+                messages={
+                  moderatorProvider && moderatorModel
+                    ? messages.filter(m => m.role === 'user' || m.providerId === 'moderator')
+                    : messages
+                }
                 onRegenerate={handleRegenerate}
                 onDelete={handleDeleteMessage}
               />

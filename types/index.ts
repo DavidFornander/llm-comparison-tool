@@ -4,7 +4,7 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  providerId?: ProviderId;
+  providerId?: ProviderId | 'moderator';
   timestamp: Date;
   error?: string;
   errorType?: string;
@@ -44,10 +44,15 @@ export interface ChatRequest {
   prompt: string;
   providerIds: ProviderId[];
   selectedModels?: Record<ProviderId, string>;
+  moderator?: {
+    enabled: boolean;
+    providerId: ProviderId;
+    model: string;
+  };
 }
 
 export interface ChatResponse {
-  providerId: ProviderId;
+  providerId: ProviderId | 'moderator';
   content: string;
   error?: string;
   model?: string;

@@ -8,6 +8,7 @@ import { ipFilter, getClientIP } from '@/lib/security/ip-filter';
 import { sanitizeLlmResponse, detectMaliciousPatterns } from '@/lib/security/content-filter';
 import config from '@/lib/config';
 import type { ChatRequest, ChatResponse, ProviderId } from '@/types';
+import { createModeratorPrompt } from '@/lib/utils/moderator';
 
 export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { prompt, providerIds, apiKeys, selectedModels } = body;
+    const { prompt, providerIds, apiKeys, selectedModels, moderator } = body;
 
     // Validate prompt
     let validatedPrompt: string;
@@ -233,6 +234,93 @@ export async function POST(request: NextRequest) {
         };
       }
     });
+
+    // Process moderator if enabled
+    if (moderator?.enabled && moderator.providerId && moderator.model) {
+      // Validate moderator provider has API key
+      let moderatorApiKey: string | undefined;
+      const moderatorServerKey = config.apiKeys[moderator.providerId];
+      if (moderatorServerKey) {
+        moderatorApiKey = moderatorServerKey;
+      } else if (apiKeys?.[moderator.providerId] && apiKeys[moderator.providerId].trim().length > 0) {
+        moderatorApiKey = apiKeys[moderator.providerId];
+      }
+
+      if (!moderatorApiKey) {
+        // Add error response for moderator
+        responses.push({
+          providerId: 'moderator',
+          content: '',
+          error: 'Missing API key for moderator provider',
+        });
+      } else if (validatedProviderIds.length === 0) {
+        // No providers selected
+        responses.push({
+          providerId: 'moderator',
+          content: '',
+          error: 'No providers selected for comparison',
+        });
+      } else {
+        try {
+          // Get moderator provider
+          const moderatorProvider = providerRegistry.get(moderator.providerId);
+          if (!moderatorProvider) {
+            responses.push({
+              providerId: 'moderator',
+              content: '',
+              error: 'Moderator provider not found',
+            });
+          } else {
+            // Create moderator prompt
+            const moderatorPrompt = createModeratorPrompt(validatedPrompt, responses);
+            
+            // Call moderator provider
+            const options = { model: moderator.model };
+            const rawModeratorContent = await moderatorProvider.generateResponse(moderatorPrompt, moderatorApiKey, options);
+            
+            // Sanitize moderator response
+            const sanitizedModeratorContent = sanitizeLlmResponse(rawModeratorContent);
+            
+            // Log successful moderator API key usage
+            logApiKeyUsage(clientIP, moderator.providerId, true, userAgent);
+            
+            // Add moderator response
+            responses.push({
+              providerId: 'moderator',
+              content: sanitizedModeratorContent,
+              model: moderator.model,
+            });
+          }
+        } catch (error) {
+          // Log moderator error
+          console.error(`[Moderator] Error generating response:`, {
+            providerId: moderator.providerId,
+            model: moderator.model,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          });
+          
+          // Log provider error with audit logger
+          logProviderError(clientIP, moderator.providerId, error, {
+            model: moderator.model,
+            promptLength: validatedPrompt.length,
+            userAgent,
+            path,
+          });
+          
+          // Log failed API key usage
+          logApiKeyUsage(clientIP, moderator.providerId, false, userAgent);
+          
+          // Add error response for moderator
+          responses.push({
+            providerId: 'moderator',
+            content: '',
+            error: sanitizeError(error),
+            model: moderator.model,
+          });
+        }
+      }
+    }
 
     return NextResponse.json(
       { responses },
