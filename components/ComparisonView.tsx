@@ -1,12 +1,13 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { providerRegistry } from '@/lib/provider-registry';
 import type { Message, ProviderId } from '@/types';
 import MessageActions from './MessageActions';
 import LoadingSkeleton from './LoadingSkeleton';
 import ErrorDisplay from './ErrorDisplay';
 import MarkdownRenderer from './MarkdownRenderer';
+import PromptModal from './PromptModal';
 
 interface ComparisonViewProps {
   messages: Message[];
@@ -28,6 +29,7 @@ export default function ComparisonView({
   moderatorModel,
 }: ComparisonViewProps) {
   const scrollRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
 
   // Group messages by conversation turn
   const groupedMessages: Array<{
@@ -185,7 +187,27 @@ export default function ComparisonView({
                                   )}
                                 </div>
                                 {response && (
-                                  <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                                  <div className="flex items-center gap-2 opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                                    <button
+                                      onClick={() => setSelectedPrompt(group.userMessage.content)}
+                                      className="p-1.5 hover:bg-muted/50 rounded transition-colors"
+                                      title="View input prompt"
+                                      aria-label="View input prompt"
+                                    >
+                                      <svg
+                                        className="w-4 h-4 text-muted-foreground hover:text-foreground"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                    </button>
                                     <MessageActions
                                       message={response}
                                       onRegenerate={onRegenerate ? () => onRegenerate(providerId, response.id) : undefined}
@@ -263,7 +285,27 @@ export default function ComparisonView({
                                   </span>
                                 </div>
                                 {moderatorResponse && (
-                                  <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                                  <div className="flex items-center gap-2 opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                                    <button
+                                      onClick={() => setSelectedPrompt(moderatorResponse.prompt || group.userMessage.content)}
+                                      className="p-1.5 hover:bg-muted/50 rounded transition-colors"
+                                      title="View input prompt"
+                                      aria-label="View input prompt"
+                                    >
+                                      <svg
+                                        className="w-4 h-4 text-muted-foreground hover:text-foreground"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                    </button>
                                     <MessageActions
                                       message={moderatorResponse}
                                       onRegenerate={undefined}
@@ -309,6 +351,11 @@ export default function ComparisonView({
           );
         })}
       </div>
+      <PromptModal
+        isOpen={selectedPrompt !== null}
+        onClose={() => setSelectedPrompt(null)}
+        prompt={selectedPrompt || ''}
+      />
     </div>
   );
 }

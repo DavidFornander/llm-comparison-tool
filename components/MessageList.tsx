@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { providerRegistry } from '@/lib/provider-registry';
 import type { Message, ProviderId } from '@/types';
 import MessageActions from './MessageActions';
 import ErrorDisplay from './ErrorDisplay';
 import MarkdownRenderer from './MarkdownRenderer';
+import PromptModal from './PromptModal';
 
 interface MessageListProps {
   messages: Message[];
@@ -13,6 +15,8 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages, onRegenerate, onDelete }: MessageListProps) {
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+
   if (messages.length === 0) {
     return null; // EmptyState will be handled by parent
   }
@@ -98,7 +102,27 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
                             </span>
                           )}
                         </div>
-                        <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                        <div className="flex items-center gap-2 opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                          <button
+                            onClick={() => setSelectedPrompt(response.prompt || group.userMessage.content)}
+                            className="p-1.5 hover:bg-muted/50 rounded transition-colors"
+                            title="View input prompt"
+                            aria-label="View input prompt"
+                          >
+                            <svg
+                              className="w-4 h-4 text-muted-foreground hover:text-foreground"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </button>
                           <MessageActions
                             message={response}
                             onDelete={onDelete ? () => onDelete(response.id) : undefined}
@@ -164,7 +188,27 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
                           </span>
                         )}
                       </div>
-                      <div className="opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                      <div className="flex items-center gap-2 opacity-0 group-hover/response:opacity-100 transition-all duration-200 scale-95 group-hover/response:scale-100">
+                        <button
+                          onClick={() => setSelectedPrompt(group.userMessage.content)}
+                          className="p-1.5 hover:bg-muted/50 rounded transition-colors"
+                          title="View input prompt"
+                          aria-label="View input prompt"
+                        >
+                          <svg
+                            className="w-4 h-4 text-muted-foreground hover:text-foreground"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </button>
                         <MessageActions
                           message={response}
                           onRegenerate={onRegenerate ? () => onRegenerate(response.providerId!, response.id) : undefined}
@@ -186,6 +230,11 @@ export default function MessageList({ messages, onRegenerate, onDelete }: Messag
           </div>
         </div>
       ))}
+      <PromptModal
+        isOpen={selectedPrompt !== null}
+        onClose={() => setSelectedPrompt(null)}
+        prompt={selectedPrompt || ''}
+      />
     </div>
   );
 }

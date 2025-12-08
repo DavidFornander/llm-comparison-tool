@@ -302,11 +302,12 @@ export async function POST(request: NextRequest) {
             // Log successful moderator API key usage
             logApiKeyUsage(clientIP, moderator.providerId, true, userAgent);
             
-            // Add moderator response
+            // Add moderator response with the actual prompt
             responses.push({
               providerId: 'moderator',
               content: sanitizedModeratorContent,
               model: moderator.model,
+              prompt: moderatorPrompt, // Store the actual prompt sent to moderator
             });
           }
         } catch (error) {

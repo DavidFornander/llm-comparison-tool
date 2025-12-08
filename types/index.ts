@@ -9,6 +9,7 @@ export interface Message {
   error?: string;
   errorType?: string;
   model?: string;
+  prompt?: string; // For moderator messages, stores the actual prompt sent to the moderator
 }
 
 export interface Provider {
@@ -56,5 +57,6 @@ export interface ChatResponse {
   content: string;
   error?: string;
   model?: string;
+  prompt?: string; // For moderator messages, stores the actual prompt sent to the moderator
 }
 

@@ -330,6 +330,7 @@ export default function ChatInterface() {
         error: resp.error,
         errorType: resp.error ? categorizeError(resp.error) : undefined,
         model: resp.model,
+        prompt: resp.prompt, // Store the prompt (for moderator messages)
       }));
 
       setMessages((prev) => [...prev, ...assistantMessages]);
