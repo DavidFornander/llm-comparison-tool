@@ -1,0 +1,20 @@
+services:
+  llm-comparison-tool-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: llm-comparison-tool-dev
+    ports:
+      - "3000:3000"
+      - "3001:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    restart: unless-stopped
+    command: npm run dev
+
