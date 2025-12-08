@@ -68,11 +68,14 @@ export default function ProviderCard({
     }
   }, [selectedModel, currentSelectedModel]);
 
-  // Fetch models when provider is selected and has API key
+  // Fetch models when provider is selected and available (has API key or doesn't require one)
   const fetchModels = useCallback(async () => {
     if (!isSelected || !isAvailable) {
       return;
     }
+    
+    const providerInstance = providerRegistry.get(providerId);
+    const requiresKey = providerInstance?.requiresApiKey ?? true;
 
     // Check cache first
     try {
@@ -106,15 +109,16 @@ export default function ProviderCard({
     setModelError(null);
 
     try {
-      // Get API key (client-side or server-side)
+      // Get API key (client-side or server-side) - only if provider requires it
       let apiKey: string | null = null;
-      if (!serverSideKey) {
+      if (requiresKey && !serverSideKey) {
         apiKey = getApiKey(providerId);
       }
 
       // Build query parameters
       const params = new URLSearchParams({ providerId });
-      if (apiKey) {
+      // Only append API key if provider requires it and we have one
+      if (requiresKey && apiKey) {
         params.append('apiKey', apiKey);
       }
 
@@ -164,7 +168,7 @@ export default function ProviderCard({
     } finally {
       setIsLoadingModels(false);
     }
-  }, [isSelected, isAvailable, providerId, serverSideKey, onModelChange, currentSelectedModel]);
+  }, [isSelected, isAvailable, providerId, serverSideKey, onModelChange, currentSelectedModel, provider]);
 
   // Fetch models when selection changes
   useEffect(() => {

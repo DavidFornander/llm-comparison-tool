@@ -33,6 +33,7 @@ export abstract class LLMProvider {
   abstract readonly id: ProviderId;
   abstract readonly name: string;
   abstract readonly displayName: string;
+  readonly requiresApiKey: boolean = true; // Default to true for backward compatibility
 
   /**
    * Generate a response from the LLM provider

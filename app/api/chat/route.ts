@@ -130,6 +130,9 @@ export async function POST(request: NextRequest) {
     const missingKeys: ProviderId[] = [];
 
     for (const providerId of validatedProviderIds as ProviderId[]) {
+      const provider = providerRegistry.get(providerId);
+      const requiresKey = provider?.requiresApiKey ?? true;
+      
       // Check server-side keys first
       const serverKey = config.apiKeys[providerId];
       if (serverKey) {
@@ -137,6 +140,9 @@ export async function POST(request: NextRequest) {
       } else if (apiKeys?.[providerId] && apiKeys[providerId].trim().length > 0) {
         // Fallback to client-provided key
         finalApiKeys[providerId] = apiKeys[providerId];
+      } else if (!requiresKey) {
+        // Provider doesn't require API key (e.g., local Ollama)
+        finalApiKeys[providerId] = ''; // Use empty string
       } else {
         missingKeys.push(providerId);
       }
@@ -227,16 +233,22 @@ export async function POST(request: NextRequest) {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {
+        const providerId = validatedProviderIds[index] as ProviderId;
+        const model = selectedModels?.[providerId];
         return {
-          providerId: validatedProviderIds[index] as ProviderId,
+          providerId,
           content: '',
           error: sanitizeError(result.reason),
+          model: model || undefined,
         };
       }
     });
 
     // Process moderator if enabled
     if (moderator?.enabled && moderator.providerId && moderator.model) {
+      const moderatorProviderInstance = providerRegistry.get(moderator.providerId);
+      const moderatorRequiresKey = moderatorProviderInstance?.requiresApiKey ?? true;
+      
       // Validate moderator provider has API key
       let moderatorApiKey: string | undefined;
       const moderatorServerKey = config.apiKeys[moderator.providerId];
@@ -244,10 +256,13 @@ export async function POST(request: NextRequest) {
         moderatorApiKey = moderatorServerKey;
       } else if (apiKeys?.[moderator.providerId] && apiKeys[moderator.providerId].trim().length > 0) {
         moderatorApiKey = apiKeys[moderator.providerId];
+      } else if (!moderatorRequiresKey) {
+        // Moderator provider doesn't require API key (e.g., local Ollama)
+        moderatorApiKey = '';
       }
 
-      if (!moderatorApiKey) {
-        // Add error response for moderator
+      if (moderatorApiKey === undefined && moderatorRequiresKey) {
+        // Add error response for moderator (except providers that don't require keys)
         responses.push({
           providerId: 'moderator',
           content: '',

@@ -12,7 +12,9 @@ interface Config {
     google?: string;
     cohere?: string;
     grok?: string;
+    ollama?: string;
   };
+  ollamaBaseUrl: string;
   rateLimit: {
     windowMs: number;
     maxRequests: number;
@@ -85,7 +87,9 @@ export const config: Config = {
     google: process.env.GOOGLE_API_KEY,
     cohere: process.env.COHERE_API_KEY,
     grok: process.env.GROK_API_KEY,
+    ollama: process.env.OLLAMA_API_KEY,
   },
+  ollamaBaseUrl: getEnv('OLLAMA_BASE_URL', 'http://localhost:11434'),
   rateLimit: {
     windowMs: getEnvNumber('RATE_LIMIT_WINDOW_MS', 60000),
     maxRequests: getEnvNumber('RATE_LIMIT_MAX_REQUESTS', 10),
@@ -111,7 +115,7 @@ export const config: Config = {
 // Validate configuration on module load
 if (config.nodeEnv === 'production') {
   // In production, log warnings for missing optional configs
-  if (!config.apiKeys.openai && !config.apiKeys.anthropic && !config.apiKeys.google && !config.apiKeys.cohere && !config.apiKeys.grok) {
+  if (!config.apiKeys.openai && !config.apiKeys.anthropic && !config.apiKeys.google && !config.apiKeys.cohere && !config.apiKeys.grok && !config.apiKeys.ollama) {
     console.warn('No server-side API keys configured. Client-side storage will be used.');
   }
 }

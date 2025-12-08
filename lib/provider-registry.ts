@@ -4,6 +4,7 @@ import { AnthropicProvider } from './providers/anthropic';
 import { GoogleProvider } from './providers/google';
 import { CohereProvider } from './providers/cohere';
 import { GrokProvider } from './providers/grok';
+import { OllamaProvider } from './providers/ollama';
 import type { ProviderId, ProviderConfig } from '@/types';
 
 class ProviderRegistry {
@@ -16,6 +17,7 @@ class ProviderRegistry {
     this.register(new GoogleProvider());
     this.register(new CohereProvider());
     this.register(new GrokProvider());
+    this.register(new OllamaProvider());
   }
 
   /**
@@ -55,6 +57,14 @@ class ProviderRegistry {
    */
   has(id: ProviderId): boolean {
     return this.providers.has(id);
+  }
+
+  /**
+   * Check if a provider requires an API key
+   */
+  requiresApiKey(providerId: ProviderId): boolean {
+    const provider = this.get(providerId);
+    return provider?.requiresApiKey ?? true; // Default to true if provider not found
   }
 }
 

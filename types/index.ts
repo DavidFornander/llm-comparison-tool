@@ -1,4 +1,4 @@
-export type ProviderId = 'openai' | 'anthropic' | 'google' | 'cohere' | 'grok';
+export type ProviderId = 'openai' | 'anthropic' | 'google' | 'cohere' | 'grok' | 'ollama';
 
 export interface Message {
   id: string;

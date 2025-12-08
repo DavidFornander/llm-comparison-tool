@@ -42,7 +42,10 @@ export default function ProviderSelector({
 
   const selectAll = () => {
     const available = enabledProviders
-      .filter(p => availableApiKeys.has(p.id))
+      .filter(p => {
+        const provider = providerRegistry.get(p.id);
+        return availableApiKeys.has(p.id) || (provider && !provider.requiresApiKey);
+      })
       .map(p => p.id);
     onSelectionChange(available);
   };
@@ -51,7 +54,10 @@ export default function ProviderSelector({
     onSelectionChange([]);
   };
 
-  const availableCount = enabledProviders.filter(p => availableApiKeys.has(p.id)).length;
+  const availableCount = enabledProviders.filter(p => {
+    const provider = providerRegistry.get(p.id);
+    return availableApiKeys.has(p.id) || (provider && !provider.requiresApiKey);
+  }).length;
   const allSelected = selectedProviders.length === availableCount && availableCount > 0;
 
   return (
@@ -83,7 +89,8 @@ export default function ProviderSelector({
       
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {enabledProviders.map((provider) => {
-          const hasApiKey = availableApiKeys.has(provider.id);
+          const providerInstance = providerRegistry.get(provider.id);
+          const hasApiKey = availableApiKeys.has(provider.id) || (providerInstance && !providerInstance.requiresApiKey);
           const isSelected = selectedProviders.includes(provider.id);
           
           return (

@@ -80,6 +80,14 @@ export default function ChatInterface() {
     // Add server-side keys
     serverSideKeys.forEach((id) => available.add(id));
 
+    // Add providers that don't require API keys
+    providers.forEach((provider) => {
+      const providerInstance = providerRegistry.get(provider.id);
+      if (providerInstance && !providerInstance.requiresApiKey) {
+        available.add(provider.id);
+      }
+    });
+
     // Add client-side keys
     providers.forEach((provider) => {
       if (hasApiKey(provider.id)) {
@@ -100,10 +108,17 @@ export default function ChatInterface() {
       setIsLoadingModeratorModels(true);
       const modelsMap: Record<ProviderId, string[]> = {};
 
-      // Filter to only enabled providers with API keys
-      const enabledProvidersWithKeys = Array.from(availableApiKeys).filter((providerId) =>
-        isProviderEnabled(providerId)
-      );
+      // Filter to only enabled providers (with API keys or providers that don't require keys)
+      const enabledProvidersWithKeys = providers
+        .filter((p) => {
+          const providerInstance = providerRegistry.get(p.id);
+          const requiresKey = providerInstance?.requiresApiKey ?? true;
+          return (
+            isProviderEnabled(p.id) &&
+            (availableApiKeys.has(p.id) || !requiresKey)
+          );
+        })
+        .map((p) => p.id);
 
       const fetchPromises = enabledProvidersWithKeys.map(async (providerId) => {
         try {
@@ -213,10 +228,12 @@ export default function ChatInterface() {
       return;
     }
 
-    // Validate all selected providers have API keys (server-side or client-side)
+    // Validate all selected providers have API keys (server-side or client-side) if required
     const missingKeys: ProviderId[] = [];
     selectedProviders.forEach((id) => {
-      if (!serverSideKeys.has(id) && !hasApiKey(id)) {
+      const provider = providerRegistry.get(id);
+      const requiresKey = provider?.requiresApiKey ?? true;
+      if (requiresKey && !serverSideKeys.has(id) && !hasApiKey(id)) {
         missingKeys.push(id);
       }
     });
@@ -346,6 +363,10 @@ export default function ChatInterface() {
     if (userMessageIndex === -1) return;
 
     const userMessage = messages[userMessageIndex];
+    const originalResponse = messages[responseIndex];
+
+    // Extract model from original response or fallback to selectedModels
+    const model = originalResponse.model || selectedModels[providerId];
 
     // Remove the old response
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
@@ -376,6 +397,7 @@ export default function ChatInterface() {
           prompt: userMessage.content,
           providerIds: [providerId],
           apiKeys,
+          selectedModels: model ? { [providerId]: model } : undefined,
         }),
       });
 
@@ -391,6 +413,7 @@ export default function ChatInterface() {
             timestamp: new Date(),
             error: newResponse.error,
             errorType: newResponse.error ? categorizeError(newResponse.error) : undefined,
+            model: newResponse.model,
           };
           setMessages((prev) => {
             const newMessages = [...prev];

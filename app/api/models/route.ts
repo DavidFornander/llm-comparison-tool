@@ -50,6 +50,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get API key (prefer server-side, fallback to client-provided)
+    const providerInstance = providerRegistry.get(providerId);
+    const requiresKey = providerInstance?.requiresApiKey ?? true;
+    
     let apiKey: string | undefined;
     
     // Check server-side key first
@@ -59,6 +62,9 @@ export async function GET(request: NextRequest) {
     } else if (clientApiKey && clientApiKey.trim().length > 0) {
       // Fallback to client-provided key
       apiKey = clientApiKey;
+    } else if (!requiresKey) {
+      // Provider doesn't require API key (e.g., local Ollama)
+      apiKey = ''; // Use empty string
     } else {
       return NextResponse.json(
         { error: 'API key is required. Please provide an API key or configure server-side keys.' },
@@ -66,7 +72,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!apiKey || !provider.validateApiKey(apiKey)) {
+    // Only validate API key if provider requires one
+    if (requiresKey && (!apiKey || !provider.validateApiKey(apiKey))) {
       return NextResponse.json(
         { error: 'Invalid API key' },
         { status: 400 }
@@ -74,8 +81,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch available models from the provider
+    // Use empty string if provider doesn't require key and apiKey is undefined
     try {
-      const models = await provider.fetchAvailableModels(apiKey);
+      const models = await provider.fetchAvailableModels(apiKey || '');
       return NextResponse.json({ models });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch models';

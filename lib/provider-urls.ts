@@ -24,5 +24,9 @@ export const providerUrls: Record<ProviderId, { apiDocs: string; apiKeys: string
     apiDocs: 'https://docs.x.ai',
     apiKeys: 'https://console.x.ai/',
   },
+  ollama: {
+    apiDocs: 'https://github.com/ollama/ollama/blob/main/docs/api.md',
+    apiKeys: 'https://github.com/ollama/ollama',
+  },
 };
 

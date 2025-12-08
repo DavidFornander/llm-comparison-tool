@@ -127,10 +127,12 @@ export default function ModeratorDropdown({
 
             {/* Provider categories */}
             {providers.map((provider) => {
+              const providerInstance = providerRegistry.get(provider.id);
+              const requiresKey = providerInstance?.requiresApiKey ?? true;
               const models = providerModels[provider.id] || [];
               const isExpanded = expandedProviders.has(provider.id);
               const isSelected = moderatorProvider === provider.id && moderatorModel;
-              const hasApiKey = availableProviders.includes(provider.id) || serverSideKeys.has(provider.id);
+              const hasApiKey = availableProviders.includes(provider.id) || serverSideKeys.has(provider.id) || !requiresKey;
               const hasModels = models.length > 0;
 
               return (
@@ -145,7 +147,7 @@ export default function ModeratorDropdown({
                   >
                     <div className="flex items-center gap-2">
                       <span>{provider.displayName}</span>
-                      {!hasApiKey && (
+                      {!hasApiKey && requiresKey && (
                         <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-500/20 text-red-600 dark:text-red-400 rounded">
                           Missing Key
                         </span>

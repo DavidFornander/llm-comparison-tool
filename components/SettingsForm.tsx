@@ -39,8 +39,10 @@ export default function SettingsForm() {
 
   // Fetch available models for providers with API keys
   const fetchModelsForProvider = useCallback(async (providerId: ProviderId) => {
-    // Allow fetch if client key exists OR server-side key exists
-    if (!hasApiKey(providerId) && !serverSideKeys.has(providerId)) {
+    const provider = providerRegistry.get(providerId);
+    const requiresKey = provider?.requiresApiKey ?? true;
+    // Allow fetch if provider doesn't require key, OR client key exists, OR server-side key exists
+    if (requiresKey && !hasApiKey(providerId) && !serverSideKeys.has(providerId)) {
       return;
     }
 
@@ -293,7 +295,10 @@ export default function SettingsForm() {
             <button
               type="button"
               onClick={() => fetchModelsForProvider(provider.id)}
-              disabled={loadingModels[provider.id] || (!isSaved && !serverSideKeys.has(provider.id))}
+              disabled={
+                loadingModels[provider.id] || 
+                (provider.requiresApiKey && !isSaved && !serverSideKeys.has(provider.id))
+              }
               className="px-3 py-1.5 text-xs border border-border rounded-xl hover:bg-accent text-foreground disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 font-medium"
             >
               {loadingModels[provider.id] ? 'Loading…' : 'Refresh models'}
@@ -363,6 +368,7 @@ export default function SettingsForm() {
               {provider.id === 'google' && 'Google AI Studio'}
               {provider.id === 'cohere' && 'Cohere Dashboard'}
               {provider.id === 'grok' && 'xAI Console'}
+              {provider.id === 'ollama' && 'Ollama (Local)'}
             </a>
             {' | '}
             <a
