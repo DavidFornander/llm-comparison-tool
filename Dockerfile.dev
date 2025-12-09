@@ -17,5 +17,5 @@ EXPOSE 3100
 ENV HOSTNAME=0.0.0.0
 
 # Start development server
-CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0"]
+CMD ["npm", "run", "dev"]
 
