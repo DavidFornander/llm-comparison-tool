@@ -92,6 +92,34 @@ export function validateCsrfToken(request: Request): boolean {
 }
 
 /**
+ * Check if an IP/hostname is in a local network range
+ */
+function isLocalNetwork(hostname: string): boolean {
+  // Check for localhost variants
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    return true;
+  }
+
+  // Check for private IP ranges (RFC 1918)
+  // 192.168.0.0/16
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+    return true;
+  }
+  
+  // 10.0.0.0/8
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+    return true;
+  }
+  
+  // 172.16.0.0/12
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Validate origin header for additional CSRF protection
  */
 export function validateOrigin(request: Request, allowedOrigins: string[]): boolean {
@@ -104,6 +132,12 @@ export function validateOrigin(request: Request, allowedOrigins: string[]): bool
     }
     try {
       const refererUrl = new URL(referer);
+      
+      // Allow local network IPs
+      if (isLocalNetwork(refererUrl.hostname)) {
+        return true;
+      }
+      
       return allowedOrigins.some(allowed => {
         try {
           const allowedUrl = new URL(allowed);
@@ -115,6 +149,17 @@ export function validateOrigin(request: Request, allowedOrigins: string[]): bool
     } catch {
       return false;
     }
+  }
+
+  try {
+    const originUrl = new URL(origin);
+    
+    // Allow local network IPs
+    if (isLocalNetwork(originUrl.hostname)) {
+      return true;
+    }
+  } catch {
+    // Invalid URL, fall through to exact match check
   }
 
   return allowedOrigins.includes(origin);

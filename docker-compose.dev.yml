@@ -5,8 +5,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: llm-comparison-tool-dev
     ports:
-      - "3000:3000"
-      - "3001:3000"
+      - "0.0.0.0:3100:3100"  # Bind to all interfaces to expose on local network
     volumes:
       - .:/app
       - /app/node_modules
@@ -14,7 +13,8 @@ services:
     environment:
       - NODE_ENV=development
       - WATCHPACK_POLLING=true
-      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+      - HOSTNAME=0.0.0.0  # Listen on all interfaces
+      # Allow localhost and local network IPs (will be auto-detected)
+      - ALLOWED_ORIGINS=http://localhost:3100
     restart: unless-stopped
-    command: npm run dev
 

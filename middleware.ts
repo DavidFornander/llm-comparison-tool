@@ -37,13 +37,14 @@ export function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
   // Content Security Policy
+  // Allow connections from local network IPs
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval and unsafe-inline
     "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    "connect-src 'self'",
+    "connect-src 'self' http://localhost:* http://127.0.0.1:* http://192.168.*:* http://10.*:* http://172.16.*:* http://172.17.*:* http://172.18.*:* http://172.19.*:* http://172.20.*:* http://172.21.*:* http://172.22.*:* http://172.23.*:* http://172.24.*:* http://172.25.*:* http://172.26.*:* http://172.27.*:* http://172.28.*:* http://172.29.*:* http://172.30.*:* http://172.31.*:*",
     "frame-ancestors 'none'",
   ].join('; ');
   response.headers.set('Content-Security-Policy', csp);
@@ -53,11 +54,36 @@ export function middleware(request: NextRequest) {
     const origin = request.headers.get('origin');
     
     if (appConfig.security.enableCors) {
-      if (origin && appConfig.security.allowedOrigins.includes(origin)) {
+      // Check if origin is allowed (exact match or local network)
+      let isAllowed = false;
+      if (origin) {
+        // Check exact match first
+        if (appConfig.security.allowedOrigins.includes(origin)) {
+          isAllowed = true;
+        } else {
+          // Check if it's a local network IP
+          try {
+            const originUrl = new URL(origin);
+            const hostname = originUrl.hostname;
+            // Allow localhost and private IP ranges
+            if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' ||
+                /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+                /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+                /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+              isAllowed = true;
+            }
+          } catch {
+            // Invalid URL, don't allow
+          }
+        }
+      }
+      
+      if (isAllowed && origin) {
         response.headers.set('Access-Control-Allow-Origin', origin);
         response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token');
         response.headers.set('Access-Control-Max-Age', '86400');
+        response.headers.set('Access-Control-Allow-Credentials', 'true');
       }
     }
 

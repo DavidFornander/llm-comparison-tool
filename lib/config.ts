@@ -79,8 +79,8 @@ function getEnvArray(key: string, defaultValue: string[]): string[] {
 
 export const config: Config = {
   nodeEnv: getEnv('NODE_ENV', 'development'),
-  port: getEnvNumber('PORT', 3000),
-  appUrl: getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000'),
+  port: getEnvNumber('PORT', 3100),
+  appUrl: getEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3100'),
   apiKeys: {
     openai: process.env.OPENAI_API_KEY,
     anthropic: process.env.ANTHROPIC_API_KEY,
@@ -96,7 +96,7 @@ export const config: Config = {
     maxPromptLength: getEnvNumber('RATE_LIMIT_MAX_PROMPT_LENGTH', 10000),
   },
   security: {
-    allowedOrigins: getEnvArray('ALLOWED_ORIGINS', ['http://localhost:3000', 'http://localhost:3001']),
+    allowedOrigins: getEnvArray('ALLOWED_ORIGINS', ['http://localhost:3100']),
     enableCors: getEnvBoolean('ENABLE_CORS', true),
     csrfSecret: getEnv('CSRF_SECRET', 'change-me-in-production'),
     apiTokenSecret: getEnv('API_TOKEN_SECRET', 'change-me-in-production'),
