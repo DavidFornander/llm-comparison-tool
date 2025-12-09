@@ -4,6 +4,55 @@ import appConfig from './lib/config';
 import { ipFilter, getClientIP } from './lib/security/ip-filter';
 import { logSuspiciousActivity } from './lib/security/audit-logger';
 
+/**
+ * Validate that an IP octet is between 0-255
+ */
+function isValidOctet(octet: string): boolean {
+  const num = parseInt(octet, 10);
+  return !isNaN(num) && num >= 0 && num <= 255;
+}
+
+/**
+ * Validate that an IP address has valid octets (0-255)
+ */
+function isValidIPv4(ip: string): boolean {
+  const parts = ip.split('.');
+  if (parts.length !== 4) {
+    return false;
+  }
+  return parts.every(part => isValidOctet(part));
+}
+
+/**
+ * Check if an IP address is in a valid local network range (RFC 1918)
+ */
+function isValidLocalNetworkIP(hostname: string): boolean {
+  // Validate it's a valid IPv4 first
+  if (!isValidIPv4(hostname)) {
+    return false;
+  }
+
+  const parts = hostname.split('.').map(Number);
+
+  // Check for private IP ranges (RFC 1918)
+  // 192.168.0.0/16
+  if (parts[0] === 192 && parts[1] === 168) {
+    return true;
+  }
+  
+  // 10.0.0.0/8
+  if (parts[0] === 10) {
+    return true;
+  }
+  
+  // 172.16.0.0/12
+  if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) {
+    return true;
+  }
+
+  return false;
+}
+
 export function middleware(request: NextRequest) {
   // HTTPS enforcement in production
   if (appConfig.nodeEnv === 'production') {
@@ -37,14 +86,15 @@ export function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
   // Content Security Policy
-  // Allow connections from local network IPs
+  // Note: CSP doesn't support wildcards in IP addresses, so we only allow localhost
+  // Server-side origin validation in middleware handles local network IPs
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval and unsafe-inline
     "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    "connect-src 'self' http://localhost:* http://127.0.0.1:* http://192.168.*:* http://10.*:* http://172.16.*:* http://172.17.*:* http://172.18.*:* http://172.19.*:* http://172.20.*:* http://172.21.*:* http://172.22.*:* http://172.23.*:* http://172.24.*:* http://172.25.*:* http://172.26.*:* http://172.27.*:* http://172.28.*:* http://172.29.*:* http://172.30.*:* http://172.31.*:*",
+    "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:*",
     "frame-ancestors 'none'",
   ].join('; ');
   response.headers.set('Content-Security-Policy', csp);
@@ -65,11 +115,10 @@ export function middleware(request: NextRequest) {
           try {
             const originUrl = new URL(origin);
             const hostname = originUrl.hostname;
-            // Allow localhost and private IP ranges
-            if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' ||
-                /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
-                /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
-                /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)) {
+            // Allow localhost and private IP ranges (with proper validation)
+            if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+              isAllowed = true;
+            } else if (isValidLocalNetworkIP(hostname)) {
               isAllowed = true;
             }
           } catch {
